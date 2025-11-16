@@ -1,0 +1,3475 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>スロット稼働管理システム</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            background: linear-gradient(to right, #38bdf8, #0ea5e9, #0284c7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+        }
+
+        header p {
+            color: #94a3b8;
+            font-size: 0.875rem;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .menu-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            animation: slideUp 0.5s ease-out;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        .menu-card:nth-child(1) { animation-delay: 0s; }
+        .menu-card:nth-child(2) { animation-delay: 0.1s; }
+        .menu-card:nth-child(3) { animation-delay: 0.2s; }
+        .menu-card:nth-child(4) { animation-delay: 0.3s; }
+
+        .menu-card:active {
+            transform: scale(0.98);
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .menu-card:hover {
+                transform: scale(1.02);
+                box-shadow: 0 20px 40px rgba(14, 165, 233, 0.2);
+            }
+        }
+
+        .menu-card.green {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .menu-card.green:hover {
+            background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+        }
+
+        .menu-card.blue {
+            background: linear-gradient(135deg, #3b82f6 0%, #0891b2 100%);
+        }
+
+        .menu-card.blue:hover {
+            background: linear-gradient(135deg, #60a5fa 0%, #22d3ee 100%);
+        }
+
+        .menu-card.purple {
+            background: linear-gradient(135deg, #a855f7 0%, #db2777 100%);
+        }
+
+        .menu-card.purple:hover {
+            background: linear-gradient(135deg, #c084fc 0%, #f472b6 100%);
+        }
+
+        .menu-card.orange {
+            background: linear-gradient(135deg, #f97316 0%, #dc2626 100%);
+        }
+
+        .menu-card.orange:hover {
+            background: linear-gradient(135deg, #fb923c 0%, #ef4444 100%);
+        }
+
+        .menu-card .icon {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 0.75rem;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
+        }
+
+        .menu-card h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.375rem;
+            color: white;
+            line-height: 1.3;
+        }
+
+        .menu-card p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .menu-card .arrow {
+            position: absolute;
+            bottom: 1.25rem;
+            right: 1.25rem;
+            width: 20px;
+            height: 20px;
+            opacity: 0.5;
+            transition: all 0.3s ease;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .menu-card:hover .arrow {
+                opacity: 1;
+                transform: translateX(8px);
+            }
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .back-button {
+            padding: 0.625rem;
+            border-radius: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 44px;
+            min-height: 44px;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        .back-button:active {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(0.95);
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .back-button:hover {
+                background: rgba(255, 255, 255, 0.2);
+            }
+        }
+
+        .back-button svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .page h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            background: none;
+            -webkit-text-fill-color: white;
+            line-height: 1.2;
+        }
+
+        footer {
+            text-align: center;
+            color: #64748b;
+            font-size: 0.75rem;
+            margin-top: 2rem;
+            padding-bottom: 1rem;
+        }
+
+        .form-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            color: #cbd5e1;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #38bdf8;
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            padding-right: 2.5rem;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        .form-group select:focus {
+            outline: none;
+            border-color: #38bdf8;
+            background-color: rgba(255, 255, 255, 0.15);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2338bdf8' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);
+        }
+
+        .form-group select option {
+            background: #1e293b;
+            color: white;
+        }
+
+        .form-group select:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .coin-diff-tool-link {
+            color: #38bdf8;
+            text-decoration: none;
+            font-size: 1rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .coin-diff-tool-link:hover {
+            background: rgba(56, 189, 248, 0.2);
+            border-color: rgba(56, 189, 248, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .coin-diff-tool-link:active {
+            transform: translateY(0);
+        }
+
+        .submit-button {
+            width: 100%;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border: none;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        .submit-button:hover {
+            background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .submit-button:active {
+            transform: translateY(0);
+        }
+
+        .submit-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* モーダルスタイル */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 1rem;
+        }
+
+        .modal-content {
+            background: #1e293b;
+            border-radius: 1rem;
+            width: 100%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            border-bottom: 1px solid #334155;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: #f1f5f9;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background: #334155;
+            color: #f1f5f9;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .operation-detail-item {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: #0f172a;
+            border-radius: 0.5rem;
+            border: 1px solid #334155;
+        }
+
+        .operation-detail-item h3 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.125rem;
+            color: #38bdf8;
+        }
+
+        .operation-detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            color: #cbd5e1;
+        }
+
+        .operation-detail-label {
+            font-weight: 600;
+            color: #94a3b8;
+        }
+
+        .operation-detail-value {
+            color: #f1f5f9;
+        }
+
+        .expected-value-total {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #0f172a;
+            border-radius: 0.5rem;
+            border: 2px solid #38bdf8;
+            text-align: center;
+        }
+
+        .expected-value-total-label {
+            font-size: 0.875rem;
+            color: #94a3b8;
+            margin-bottom: 0.5rem;
+        }
+
+        .expected-value-total-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .calendar-day {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .calendar-day:hover {
+            background: rgba(56, 189, 248, 0.1);
+        }
+
+        .output-container {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .output-container h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #cbd5e1;
+            margin-bottom: 0.75rem;
+        }
+
+        .output-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #38bdf8;
+            text-align: center;
+        }
+
+        .machine-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .machine-item {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .machine-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateX(5px);
+        }
+
+        .machine-thumbnail {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .machine-info {
+            flex: 1;
+        }
+
+        .machine-info h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: white;
+        }
+
+        .machine-info p {
+            color: #cbd5e1;
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 0.75rem;
+        }
+
+        .machine-link {
+            display: inline-block;
+            color: #38bdf8;
+            text-decoration: none;
+            font-size: 0.875rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .machine-link:hover {
+            background: rgba(56, 189, 248, 0.2);
+            border-color: rgba(56, 189, 248, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .calendar-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .calendar-nav-button {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.875rem;
+            min-width: 44px;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .calendar-nav-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .calendar-nav-button:active {
+            transform: scale(0.95);
+        }
+
+        .calendar-month {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .calendar-day-header {
+            text-align: center;
+            padding: 0.75rem 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #94a3b8;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .calendar-day:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .calendar-day.other-month {
+            opacity: 0.3;
+        }
+
+        .calendar-day-number {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 0.25rem;
+        }
+
+        .calendar-day-amount {
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .calendar-day-amount.positive {
+            color: #10b981;
+        }
+
+        .calendar-day-amount.negative {
+            color: #ef4444;
+        }
+
+        .calendar-day-amount.zero {
+            color: #94a3b8;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* タブレットサイズ */
+        @media (min-width: 481px) and (max-width: 768px) {
+            body {
+                padding: 1.5rem;
+            }
+
+            header {
+                margin-bottom: 2.5rem;
+            }
+
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            header p {
+                font-size: 1rem;
+            }
+
+            .menu-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .menu-card {
+                padding: 2rem;
+            }
+
+            .menu-card .icon {
+                width: 48px;
+                height: 48px;
+            }
+
+            .menu-card h2 {
+                font-size: 1.875rem;
+            }
+
+            .menu-card p {
+                font-size: 1rem;
+            }
+
+            .page h1 {
+                font-size: 2.25rem;
+            }
+
+            .form-container {
+                max-width: 700px;
+            }
+
+            .machine-list {
+                max-width: 800px;
+            }
+
+            .machine-thumbnail {
+                width: 140px;
+                height: 140px;
+            }
+        }
+
+        /* デスクトップサイズ */
+        @media (min-width: 769px) {
+            body {
+                padding: 2rem;
+            }
+
+            header {
+                margin-bottom: 3rem;
+            }
+
+            h1 {
+                font-size: 3.5rem;
+            }
+
+            header p {
+                font-size: 1.125rem;
+            }
+
+            .menu-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .menu-card {
+                padding: 2rem;
+                border-radius: 1.5rem;
+            }
+
+            .menu-card .icon {
+                width: 48px;
+                height: 48px;
+                margin-bottom: 1rem;
+            }
+
+            .menu-card h2 {
+                font-size: 1.875rem;
+                margin-bottom: 0.5rem;
+            }
+
+            .menu-card p {
+                font-size: 1rem;
+            }
+
+            .menu-card .arrow {
+                bottom: 1.5rem;
+                right: 1.5rem;
+                width: 24px;
+                height: 24px;
+            }
+
+            .page-header {
+                gap: 1rem;
+                margin-bottom: 2rem;
+            }
+
+            .page h1 {
+                font-size: 2.5rem;
+            }
+
+            .form-container {
+                max-width: 800px;
+            }
+
+            .machine-list {
+                max-width: 900px;
+            }
+
+            .machine-thumbnail {
+                width: 150px;
+                height: 150px;
+            }
+
+            .machine-info h3 {
+                font-size: 1.75rem;
+            }
+
+            footer {
+                font-size: 0.875rem;
+                margin-top: 3rem;
+            }
+        }
+
+        /* 大型デスクトップ */
+        @media (min-width: 1024px) {
+            .menu-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ダッシュボード -->
+        <div id="dashboard" class="page active">
+            <header>
+                <h1>スロット稼働管理システム</h1>
+                <p>出玉はすべて101様のものに</p>
+            </header>
+
+            <div class="menu-grid">
+                <div class="menu-card green" onclick="showPage('operation')">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <h2>稼働開始</h2>
+                    <p>打ち始める</p>
+                    <svg class="arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </div>
+
+                <div class="menu-card blue" onclick="showPage('expected')">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                    </svg>
+                    <h2>期待値を見る</h2>
+                    <p>期待値と統計情報を確認</p>
+                    <svg class="arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </div>
+
+                <div class="menu-card purple" onclick="showPage('balance')">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                    <h2>収支表</h2>
+                    <p>収支の詳細を表示</p>
+                    <svg class="arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </div>
+
+                <div class="menu-card orange" onclick="showPage('machine')">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <h2>機種情報</h2>
+                    <p>機種の詳細情報を確認</p>
+                    <svg class="arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- 稼働開始 -->
+        <div id="operation" class="page">
+            <div class="page-header">
+                <button class="back-button" onclick="showPage('dashboard')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                </button>
+                <h1>稼働開始</h1>
+            </div>
+
+            <div class="form-container">
+                <div class="form-group">
+                    <label for="operation-shop">店舗</label>
+                    <select id="operation-shop">
+                        <option value="">店舗を選択してください</option>
+                        <option value="ワンダー香椎本館">ワンダー香椎本館</option>
+                        <option value="ワンダー香椎2">ワンダー香椎2</option>
+                        <option value="PSJ新宮">PSJ新宮</option>
+                        <option value="玉屋新宮">玉屋新宮</option>
+                        <option value="プラザ古賀">プラザ古賀</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="operation-machine-name">機種名</label>
+                    <select id="operation-machine-name">
+                        <option value="">機種を選択してください</option>
+                        <option value="甲鉄城のカバネリ">甲鉄城のカバネリ</option>
+                        <option value="北斗の拳">北斗の拳</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="operation-target">ねらい目</label>
+                    <select id="operation-target" disabled>
+                        <option value="">機種を選択してください</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="operation-game-count">ゲーム数</label>
+                    <select id="operation-game-count" disabled>
+                        <option value="">機種とねらい目を選択してください</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="operation-coin-diff-group" style="display: none;">
+                    <label for="operation-coin-diff">差枚数</label>
+                    <select id="operation-coin-diff">
+                        <option value="">差枚数を選択してください</option>
+                    </select>
+                </div>
+
+                <div class="output-container">
+                    <h3>期待値</h3>
+                    <div class="output-value" id="operation-expected-value">-</div>
+                </div>
+
+                <div class="form-group" id="operation-coin-diff-tool-link" style="display: none; margin-top: 2rem; text-align: center;">
+                    <a href="https://suroschool.jp/hokutosamai.html" target="_blank" rel="noopener noreferrer" class="coin-diff-tool-link">
+                        差枚数計算ツール
+                    </a>
+                </div>
+
+                <div class="form-group">
+                    <button type="button" id="operation-submit" class="submit-button">
+                        決定
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 期待値を見る -->
+        <div id="expected" class="page">
+            <div class="page-header">
+                <button class="back-button" onclick="showPage('dashboard')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                </button>
+                <h1>期待値を見る</h1>
+            </div>
+
+            <div class="form-container">
+                <div class="form-group">
+                    <label for="machine-name">機種名</label>
+                    <select id="machine-name">
+                        <option value="">機種を選択してください</option>
+                        <option value="甲鉄城のカバネリ">甲鉄城のカバネリ</option>
+                        <option value="北斗の拳">北斗の拳</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="target">ねらい目</label>
+                    <select id="target" disabled>
+                        <option value="">機種を選択してください</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="game-count">ゲーム数</label>
+                    <select id="game-count" disabled>
+                        <option value="">機種とねらい目を選択してください</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="coin-diff-group" style="display: none;">
+                    <label for="coin-diff">差枚数</label>
+                    <select id="coin-diff">
+                        <option value="">差枚数を選択してください</option>
+                    </select>
+                </div>
+
+                <div class="output-container">
+                    <h3>期待値</h3>
+                    <div class="output-value" id="expected-value">-</div>
+                </div>
+
+                <div class="form-group" id="coin-diff-tool-link" style="display: none; margin-top: 2rem; text-align: center;">
+                    <a href="https://suroschool.jp/hokutosamai.html" target="_blank" rel="noopener noreferrer" class="coin-diff-tool-link">
+                        差枚数計算ツール
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 収支表 -->
+        <div id="balance" class="page">
+            <div class="page-header">
+                <button class="back-button" onclick="showPage('dashboard')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                </button>
+                <h1>収支表</h1>
+            </div>
+
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <button class="calendar-nav-button" onclick="changeMonth(-1)">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                    </button>
+                    <div class="calendar-month" id="calendar-month-year"></div>
+                    <button class="calendar-nav-button" onclick="changeMonth(1)">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="calendar-grid" id="calendar-grid">
+                    <!-- カレンダーがJavaScriptで生成されます -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 日付詳細モーダル -->
+        <div id="date-detail-modal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="modal-date-title">日付詳細</h2>
+                    <button class="modal-close" onclick="closeDateDetailModal()">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="modal-body" id="modal-body">
+                    <!-- 詳細情報がここに表示されます -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 機種情報 -->
+        <div id="machine" class="page">
+            <div class="page-header">
+                <button class="back-button" onclick="showPage('dashboard')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                </button>
+                <h1>機種情報</h1>
+            </div>
+
+            <div class="machine-list">
+                <div class="machine-item">
+                    <img src="images/KABANERI.jpg" alt="甲鉄城のカバネリ" class="machine-thumbnail">
+                    <div class="machine-info">
+                        <h3>甲鉄城のカバネリ</h3>
+                        <p>パチスロ機種情報</p>
+                        <a href="https://p-town.dmm.com/machines/4160" target="_blank" rel="noopener noreferrer" class="machine-link">DMMぱちタウンで詳細を見る</a>
+                    </div>
+                </div>
+                <div class="machine-item">
+                    <img src="images/tokyogule.jpg" alt="東京喰種" class="machine-thumbnail">
+                    <div class="machine-info">
+                        <h3>東京喰種</h3>
+                        <p>パチスロ機種情報</p>
+                        <a href="https://p-town.dmm.com/machines/4742" target="_blank" rel="noopener noreferrer" class="machine-link">DMMぱちタウンで詳細を見る</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 機種データ
+        const machineData = {
+            '甲鉄城のカバネリ': [
+                '天井狙い（非短縮時）',
+                '天井狙い（駆け抜け後短縮時）',
+                '天井狙い（美馬ST後短縮時）',
+                'ゾーン狙い（非短縮時）',
+                'ゾーン狙い（短縮時）',
+                '朝一 天井狙い'
+            ],
+            '北斗の拳': [
+                '天井狙い',
+                '朝市天井狙い',
+                '前回一撃別狙い'
+            ]
+        };
+
+        // 期待値データ（機種名_ねらい目）
+        const expectedValueData = {
+            '甲鉄城のカバネリ_天井狙い（非短縮時）': [
+                { min: 1, max: 9, value: -895 },
+                { min: 10, max: 19, value: -723 },
+                { min: 20, max: 29, value: -599 },
+                { min: 30, max: 39, value: -428 },
+                { min: 40, max: 49, value: -228 },
+                { min: 50, max: 59, value: -13 },
+                { min: 60, max: 69, value: 208 },
+                { min: 70, max: 79, value: 436 },
+                { min: 80, max: 89, value: 662 },
+                { min: 90, max: 99, value: 648 },
+                { min: 100, max: 109, value: -654 },
+                { min: 110, max: 119, value: -514 },
+                { min: 120, max: 129, value: -362 },
+                { min: 130, max: 139, value: -101 },
+                { min: 140, max: 149, value: 58 },
+                { min: 150, max: 159, value: 207 },
+                { min: 160, max: 169, value: 368 },
+                { min: 170, max: 179, value: 580 },
+                { min: 180, max: 189, value: 790 },
+                { min: 190, max: 199, value: 1004 },
+                { min: 200, max: 209, value: 1203 },
+                { min: 210, max: 219, value: 1382 },
+                { min: 220, max: 229, value: 1524 },
+                { min: 230, max: 239, value: 1631 },
+                { min: 240, max: 249, value: 1517 },
+                { min: 250, max: 259, value: -843 },
+                { min: 260, max: 269, value: -1078 },
+                { min: 270, max: 279, value: -1036 },
+                { min: 280, max: 289, value: -780 },
+                { min: 290, max: 299, value: -616 },
+                { min: 300, max: 309, value: -467 },
+                { min: 310, max: 319, value: -352 },
+                { min: 320, max: 329, value: -286 },
+                { min: 330, max: 339, value: -208 },
+                { min: 340, max: 349, value: -93 },
+                { min: 350, max: 359, value: 66 },
+                { min: 360, max: 369, value: 220 },
+                { min: 370, max: 379, value: 388 },
+                { min: 380, max: 389, value: 560 },
+                { min: 390, max: 399, value: 736 },
+                { min: 400, max: 409, value: 904 },
+                { min: 410, max: 419, value: 1051 },
+                { min: 420, max: 429, value: 1148 },
+                { min: 430, max: 439, value: 1239 },
+                { min: 440, max: 449, value: 1302 },
+                { min: 450, max: 459, value: 702 },
+                { min: 460, max: 469, value: 760 },
+                { min: 470, max: 479, value: 906 },
+                { min: 480, max: 489, value: 1108 },
+                { min: 490, max: 499, value: 1282 },
+                { min: 500, max: 509, value: 1422 },
+                { min: 510, max: 519, value: 1541 },
+                { min: 520, max: 529, value: 1639 },
+                { min: 530, max: 539, value: 1733 },
+                { min: 540, max: 549, value: 1854 },
+                { min: 550, max: 559, value: 2010 },
+                { min: 560, max: 569, value: 2193 },
+                { min: 570, max: 579, value: 2379 },
+                { min: 580, max: 589, value: 2569 },
+                { min: 590, max: 599, value: 2759 },
+                { min: 600, max: 609, value: 2938 },
+                { min: 610, max: 619, value: 3098 },
+                { min: 620, max: 629, value: 3225 },
+                { min: 630, max: 639, value: 3369 },
+                { min: 640, max: 649, value: 3480 },
+                { min: 650, max: 659, value: 2967 },
+                { min: 660, max: 669, value: 2964 },
+                { min: 670, max: 679, value: 3115 },
+                { min: 680, max: 689, value: 3353 },
+                { min: 690, max: 699, value: 3556 },
+                { min: 700, max: 709, value: 3759 },
+                { min: 710, max: 719, value: 3936 },
+                { min: 720, max: 729, value: 4085 },
+                { min: 730, max: 739, value: 4211 },
+                { min: 740, max: 749, value: 4397 },
+                { min: 750, max: 759, value: 4608 },
+                { min: 760, max: 769, value: 4822 },
+                { min: 770, max: 779, value: 5044 },
+                { min: 780, max: 789, value: 5261 },
+                { min: 790, max: 799, value: 5479 },
+                { min: 800, max: 809, value: 5719 },
+                { min: 810, max: 819, value: 5919 },
+                { min: 820, max: 829, value: 6118 },
+                { min: 830, max: 839, value: 6283 },
+                { min: 840, max: 849, value: 6488 },
+                { min: 850, max: 859, value: 6718 },
+                { min: 860, max: 869, value: 6972 },
+                { min: 870, max: 879, value: 7234 },
+                { min: 880, max: 889, value: 7489 },
+                { min: 890, max: 899, value: 7757 },
+                { min: 900, max: 909, value: 8002 },
+                { min: 910, max: 919, value: 8279 },
+                { min: 920, max: 929, value: 8548 },
+                { min: 930, max: 939, value: 8793 },
+                { min: 940, max: 949, value: 9084 },
+                { min: 950, max: 959, value: 9357 },
+                { min: 960, max: 969, value: 9634 },
+                { min: 970, max: 979, value: 9933 },
+                { min: 980, max: 989, value: 10222 },
+                { min: 990, max: 999, value: 10492 },
+                { min: 1000, max: Infinity, value: 11189 }
+            ],
+            '甲鉄城のカバネリ_天井狙い（駆け抜け後短縮時）': [
+                { min: 1, max: 9, value: -327 },
+                { min: 10, max: 19, value: -156 },
+                { min: 20, max: 29, value: -38 },
+                { min: 30, max: 39, value: 115 },
+                { min: 40, max: 49, value: 316 },
+                { min: 50, max: 59, value: 529 },
+                { min: 60, max: 69, value: 740 },
+                { min: 70, max: 79, value: 968 },
+                { min: 80, max: 89, value: 1195 },
+                { min: 90, max: 99, value: 1230 },
+                { min: 100, max: 109, value: 183 },
+                { min: 110, max: 119, value: 322 },
+                { min: 120, max: 129, value: 465 },
+                { min: 130, max: 139, value: 692 },
+                { min: 140, max: 149, value: 839 },
+                { min: 150, max: 159, value: 1006 },
+                { min: 160, max: 169, value: 1167 },
+                { min: 170, max: 179, value: 1369 },
+                { min: 180, max: 189, value: 1581 },
+                { min: 190, max: 199, value: 1788 },
+                { min: 200, max: 209, value: 1977 },
+                { min: 210, max: 219, value: 2158 },
+                { min: 220, max: 229, value: 2284 },
+                { min: 230, max: 239, value: 2428 },
+                { min: 240, max: 249, value: 2443 },
+                { min: 250, max: 259, value: 1301 },
+                { min: 260, max: 269, value: 1322 },
+                { min: 270, max: 279, value: 1490 },
+                { min: 280, max: 289, value: 1737 },
+                { min: 290, max: 299, value: 1905 },
+                { min: 300, max: 309, value: 2060 },
+                { min: 310, max: 319, value: 2203 },
+                { min: 320, max: 329, value: 2334 },
+                { min: 330, max: 339, value: 2474 },
+                { min: 340, max: 349, value: 2628 },
+                { min: 350, max: 359, value: 2796 },
+                { min: 360, max: 369, value: 2991 },
+                { min: 370, max: 379, value: 3208 },
+                { min: 380, max: 389, value: 3420 },
+                { min: 390, max: 399, value: 3646 },
+                { min: 400, max: 409, value: 3844 },
+                { min: 410, max: 419, value: 4044 },
+                { min: 420, max: 429, value: 4194 },
+                { min: 430, max: 439, value: 4354 },
+                { min: 440, max: 449, value: 4523 },
+                { min: 450, max: 459, value: 4585 },
+                { min: 460, max: 469, value: 4756 },
+                { min: 470, max: 479, value: 4976 },
+                { min: 480, max: 489, value: 5193 },
+                { min: 490, max: 499, value: 5425 },
+                { min: 500, max: 509, value: 5666 },
+                { min: 510, max: 519, value: 5880 },
+                { min: 520, max: 529, value: 6086 },
+                { min: 530, max: 539, value: 6285 },
+                { min: 540, max: 549, value: 6494 },
+                { min: 550, max: 559, value: 6706 },
+                { min: 560, max: 569, value: 6961 },
+                { min: 570, max: 579, value: 7211 },
+                { min: 580, max: 589, value: 7469 },
+                { min: 590, max: 599, value: 7718 },
+                { min: 600, max: 609, value: 7981 },
+                { min: 610, max: 619, value: 8242 },
+                { min: 620, max: 629, value: 8504 },
+                { min: 630, max: 639, value: 8767 },
+                { min: 640, max: 649, value: 9005 },
+                { min: 650, max: Infinity, value: 9014 }
+            ],
+            '甲鉄城のカバネリ_天井狙い（美馬ST後短縮時）': [
+                { min: 1, max: 9, value: -1400 },
+                { min: 10, max: 19, value: -1231 },
+                { min: 20, max: 29, value: -1111 },
+                { min: 30, max: 39, value: -949 },
+                { min: 40, max: 49, value: -757 },
+                { min: 50, max: 59, value: -535 },
+                { min: 60, max: 69, value: -312 },
+                { min: 70, max: 79, value: -92 },
+                { min: 80, max: 89, value: 143 },
+                { min: 90, max: 99, value: 179 },
+                { min: 100, max: 109, value: -729 },
+                { min: 110, max: 119, value: -579 },
+                { min: 120, max: 129, value: -416 },
+                { min: 130, max: 139, value: -206 },
+                { min: 140, max: 149, value: -33 },
+                { min: 150, max: 159, value: 117 },
+                { min: 160, max: 169, value: 308 },
+                { min: 170, max: 179, value: 514 },
+                { min: 180, max: 189, value: 726 },
+                { min: 190, max: 199, value: 934 },
+                { min: 200, max: 209, value: 1143 },
+                { min: 210, max: 219, value: 1321 },
+                { min: 220, max: 229, value: 1480 },
+                { min: 230, max: 239, value: 1617 },
+                { min: 240, max: 249, value: 1663 },
+                { min: 250, max: 259, value: 769 },
+                { min: 260, max: 269, value: 869 },
+                { min: 270, max: 279, value: 1043 },
+                { min: 280, max: 289, value: 1308 },
+                { min: 290, max: 299, value: 1508 },
+                { min: 300, max: 309, value: 1689 },
+                { min: 310, max: 319, value: 1827 },
+                { min: 320, max: 329, value: 1965 },
+                { min: 330, max: 339, value: 2086 },
+                { min: 340, max: 349, value: 2277 },
+                { min: 350, max: 359, value: 2473 },
+                { min: 360, max: 369, value: 2691 },
+                { min: 370, max: 379, value: 2895 },
+                { min: 380, max: 389, value: 3109 },
+                { min: 390, max: 399, value: 3309 },
+                { min: 400, max: 409, value: 3513 },
+                { min: 410, max: 419, value: 3730 },
+                { min: 420, max: 429, value: 3932 },
+                { min: 430, max: 439, value: 4119 },
+                { min: 440, max: 449, value: 4326 },
+                { min: 450, max: 459, value: 4404 },
+                { min: 460, max: 469, value: 4609 },
+                { min: 470, max: 479, value: 4818 },
+                { min: 480, max: 489, value: 5059 },
+                { min: 490, max: 499, value: 5296 },
+                { min: 500, max: 509, value: 5531 },
+                { min: 510, max: 519, value: 5753 },
+                { min: 520, max: 529, value: 5966 },
+                { min: 530, max: 539, value: 6181 },
+                { min: 540, max: 549, value: 6435 },
+                { min: 550, max: 559, value: 6699 },
+                { min: 560, max: 569, value: 6961 },
+                { min: 570, max: 579, value: 7233 },
+                { min: 580, max: 589, value: 7500 },
+                { min: 590, max: 599, value: 7761 },
+                { min: 600, max: 609, value: 8034 },
+                { min: 610, max: 619, value: 8286 },
+                { min: 620, max: 629, value: 8554 },
+                { min: 630, max: 639, value: 8830 },
+                { min: 640, max: 649, value: 9088 },
+                { min: 650, max: Infinity, value: 8912 }
+            ],
+            '甲鉄城のカバネリ_ゾーン狙い（非短縮時）': [
+                { min: 70, max: 79, value: 199 },
+                { min: 80, max: 89, value: 439 },
+                { min: 90, max: 159, value: 742 },
+                { min: 160, max: 169, value: 270 },
+                { min: 170, max: 179, value: 492 },
+                { min: 180, max: 189, value: 711 },
+                { min: 190, max: Infinity, value: 935 }
+            ],
+            '甲鉄城のカバネリ_ゾーン狙い（短縮時）': [
+                { min: 70, max: 79, value: 41 },
+                { min: 80, max: 89, value: 345 },
+                { min: 90, max: 199, value: 578 },
+                { min: 200, max: 209, value: -234 },
+                { min: 210, max: 219, value: -59 },
+                { min: 220, max: 229, value: 91 },
+                { min: 230, max: 239, value: 214 },
+                { min: 240, max: Infinity, value: 517 }
+            ],
+            '甲鉄城のカバネリ_朝一 天井狙い': [
+                { min: 1, max: 9, value: -793 },
+                { min: 10, max: 19, value: -525 },
+                { min: 20, max: 29, value: -286 },
+                { min: 30, max: 39, value: -53 },
+                { min: 40, max: 49, value: 169 },
+                { min: 50, max: 59, value: 397 },
+                { min: 60, max: 69, value: 620 },
+                { min: 70, max: 79, value: 642 },
+                { min: 80, max: 89, value: 472 },
+                { min: 90, max: 99, value: 195 },
+                { min: 100, max: 109, value: 92 },
+                { min: 110, max: 119, value: 270 },
+                { min: 120, max: 129, value: 441 },
+                { min: 130, max: 139, value: 582 },
+                { min: 140, max: 149, value: 753 },
+                { min: 150, max: 159, value: 938 },
+                { min: 160, max: 169, value: 1151 },
+                { min: 170, max: 179, value: 1360 },
+                { min: 180, max: 189, value: 1567 },
+                { min: 190, max: 199, value: 1777 },
+                { min: 200, max: 209, value: 1936 },
+                { min: 210, max: 219, value: 2082 },
+                { min: 220, max: 229, value: 2042 },
+                { min: 230, max: 239, value: 1793 },
+                { min: 240, max: 249, value: 1441 },
+                { min: 250, max: 259, value: 1217 },
+                { min: 260, max: 269, value: 1376 },
+                { min: 270, max: 279, value: 1589 },
+                { min: 280, max: 289, value: 1803 },
+                { min: 290, max: 299, value: 1964 },
+                { min: 300, max: 309, value: 2078 },
+                { min: 310, max: 319, value: 2213 },
+                { min: 320, max: 329, value: 2365 },
+                { min: 330, max: 339, value: 2542 },
+                { min: 340, max: 349, value: 2725 },
+                { min: 350, max: 359, value: 2914 },
+                { min: 360, max: 369, value: 3106 },
+                { min: 370, max: 379, value: 3301 },
+                { min: 380, max: 389, value: 3497 },
+                { min: 390, max: 399, value: 3696 },
+                { min: 400, max: 409, value: 3882 },
+                { min: 410, max: 419, value: 4028 },
+                { min: 420, max: 429, value: 4194 },
+                { min: 430, max: 439, value: 4311 },
+                { min: 440, max: 449, value: 4461 },
+                { min: 450, max: 459, value: 4590 },
+                { min: 460, max: 469, value: 4808 },
+                { min: 470, max: 479, value: 5045 },
+                { min: 480, max: 489, value: 5273 },
+                { min: 490, max: 499, value: 5488 },
+                { min: 500, max: 509, value: 5695 },
+                { min: 510, max: 519, value: 5913 },
+                { min: 520, max: 529, value: 6109 },
+                { min: 530, max: 539, value: 6325 },
+                { min: 540, max: 549, value: 6559 },
+                { min: 550, max: 559, value: 6792 },
+                { min: 560, max: 569, value: 7030 },
+                { min: 570, max: 579, value: 7302 },
+                { min: 580, max: 589, value: 7517 },
+                { min: 590, max: 599, value: 7794 },
+                { min: 600, max: 609, value: 8031 },
+                { min: 610, max: 619, value: 8300 },
+                { min: 620, max: 629, value: 8452 },
+                { min: 630, max: 639, value: 8413 },
+                { min: 640, max: 649, value: 8084 },
+                { min: 650, max: 659, value: 6389 },
+                { min: 660, max: 669, value: 5196 },
+                { min: 670, max: 679, value: 4867 },
+                { min: 680, max: 689, value: 4930 },
+                { min: 690, max: 699, value: 5116 },
+                { min: 700, max: 709, value: 5198 },
+                { min: 710, max: 719, value: 5267 },
+                { min: 720, max: 729, value: 4918 },
+                { min: 730, max: 739, value: 4287 },
+                { min: 740, max: 749, value: 4408 },
+                { min: 750, max: 759, value: 4553 },
+                { min: 760, max: 769, value: 4785 },
+                { min: 770, max: 779, value: 5050 },
+                { min: 780, max: 789, value: 5306 },
+                { min: 790, max: 799, value: 5459 },
+                { min: 800, max: 809, value: 5710 },
+                { min: 810, max: 819, value: 5725 },
+                { min: 820, max: 829, value: 5945 },
+                { min: 830, max: 839, value: 5931 },
+                { min: 840, max: 849, value: 6218 },
+                { min: 850, max: 859, value: 6464 },
+                { min: 860, max: 869, value: 6487 },
+                { min: 870, max: 879, value: 6526 },
+                { min: 880, max: 889, value: 6503 },
+                { min: 890, max: 899, value: 6853 },
+                { min: 900, max: 909, value: 7126 },
+                { min: 910, max: 919, value: 7296 },
+                { min: 920, max: 929, value: 7671 },
+                { min: 930, max: 939, value: 7924 },
+                { min: 940, max: 949, value: 7986 },
+                { min: 950, max: 959, value: 8257 },
+                { min: 960, max: 969, value: 8583 },
+                { min: 970, max: 979, value: 8673 },
+                { min: 980, max: 989, value: 9135 },
+                { min: 990, max: 999, value: 9586 },
+                { min: 1000, max: Infinity, value: 10177 }
+            ],
+            '北斗の拳_天井狙い_-1500': [
+                { min: 14, max: 19, value: 1753 },
+                { min: 20, max: 29, value: 1609 },
+                { min: 30, max: 39, value: 1703 },
+                { min: 40, max: 49, value: 1766 },
+                { min: 50, max: 59, value: 1742 },
+                { min: 60, max: 69, value: 1734 },
+                { min: 70, max: 79, value: 1399 },
+                { min: 80, max: 89, value: 1569 },
+                { min: 90, max: 99, value: 1572 },
+                { min: 100, max: 109, value: 1132 },
+                { min: 110, max: 119, value: 945 },
+                { min: 120, max: 129, value: 937 },
+                { min: 130, max: 139, value: 1157 },
+                { min: 140, max: 149, value: 1425 },
+                { min: 150, max: 159, value: 1444 },
+                { min: 160, max: 169, value: 1651 },
+                { min: 170, max: 179, value: 1705 },
+                { min: 180, max: 189, value: 1444 },
+                { min: 190, max: 199, value: 1456 },
+                { min: 200, max: 209, value: 1582 },
+                { min: 210, max: 219, value: 1214 },
+                { min: 220, max: 229, value: 1346 },
+                { min: 230, max: 239, value: 1452 },
+                { min: 240, max: 249, value: 1364 },
+                { min: 250, max: 259, value: 1576 },
+                { min: 260, max: 269, value: 1025 },
+                { min: 270, max: 279, value: 1141 },
+                { min: 280, max: 289, value: 1342 },
+                { min: 290, max: 299, value: 1361 },
+                { min: 300, max: 309, value: 1512 },
+                { min: 310, max: 319, value: 1537 },
+                { min: 320, max: 329, value: 1693 },
+                { min: 330, max: 339, value: 1704 },
+                { min: 340, max: 349, value: 1841 },
+                { min: 350, max: 359, value: 1977 },
+                { min: 360, max: 369, value: 1694 },
+                { min: 370, max: 379, value: 1740 },
+                { min: 380, max: 389, value: 1782 },
+                { min: 390, max: 399, value: 1960 },
+                { min: 400, max: 409, value: 2192 },
+                { min: 410, max: 419, value: 2400 },
+                { min: 420, max: 429, value: 1753 },
+                { min: 430, max: 439, value: 1914 },
+                { min: 440, max: 449, value: 1888 },
+                { min: 450, max: 459, value: 2122 },
+                { min: 460, max: 469, value: 2107 },
+                { min: 470, max: 479, value: 2390 },
+                { min: 480, max: 489, value: 2671 },
+                { min: 490, max: 499, value: 2914 },
+                { min: 500, max: 509, value: 3200 },
+                { min: 510, max: 519, value: 3283 },
+                { min: 520, max: 529, value: 3439 },
+                { min: 530, max: 539, value: 3739 },
+                { min: 540, max: 549, value: 3979 },
+                { min: 550, max: 559, value: 3905 },
+                { min: 560, max: 569, value: 4181 },
+                { min: 570, max: 579, value: 3914 },
+                { min: 580, max: 589, value: 4163 },
+                { min: 590, max: 599, value: 4515 },
+                { min: 600, max: 609, value: 4771 },
+                { min: 610, max: 619, value: 4689 },
+                { min: 620, max: 629, value: 4975 },
+                { min: 630, max: 639, value: 5243 },
+                { min: 640, max: 649, value: 5078 },
+                { min: 650, max: 659, value: 5430 },
+                { min: 660, max: 669, value: 5637 },
+                { min: 670, max: 679, value: 5923 },
+                { min: 680, max: 689, value: 6222 },
+                { min: 690, max: 699, value: 6524 },
+                { min: 700, max: 709, value: 6857 },
+                { min: 710, max: 719, value: 7244 },
+                { min: 720, max: 729, value: 7623 },
+                { min: 730, max: 739, value: 7533 },
+                { min: 740, max: 749, value: 7819 },
+                { min: 750, max: 759, value: 8061 },
+                { min: 760, max: 769, value: 8347 },
+                { min: 770, max: 779, value: 7757 },
+                { min: 780, max: 789, value: 8254 },
+                { min: 790, max: 799, value: 8440 },
+                { min: 800, max: 809, value: 8726 },
+                { min: 810, max: 819, value: 3767 },
+                { min: 820, max: 829, value: 472 },
+                { min: 830, max: 839, value: 762 },
+                { min: 840, max: 849, value: -153 },
+                { min: 850, max: 859, value: 132 },
+                { min: 860, max: 869, value: 344 },
+                { min: 870, max: 879, value: 457 },
+                { min: 880, max: 889, value: 743 },
+                { min: 890, max: 899, value: 806 },
+                { min: 900, max: 909, value: 328 },
+                { min: 910, max: 919, value: 118 },
+                { min: 920, max: 929, value: -800 },
+                { min: 930, max: 939, value: -589 },
+                { min: 940, max: 949, value: -304 },
+                { min: 950, max: 959, value: -91 },
+                { min: 960, max: 969, value: -35 },
+                { min: 970, max: 979, value: 251 },
+                { min: 980, max: 989, value: 536 },
+                { min: 990, max: 999, value: 554 },
+                { min: 1000, max: 1009, value: 839 },
+                { min: 1010, max: 1019, value: 1125 },
+                { min: 1020, max: 1029, value: 1411 },
+                { min: 1030, max: 1039, value: 1697 },
+                { min: 1040, max: 1049, value: 1437 },
+                { min: 1050, max: 1059, value: 1537 },
+                { min: 1060, max: 1069, value: 1823 },
+                { min: 1070, max: 1079, value: 2108 },
+                { min: 1080, max: 1089, value: 2394 },
+                { min: 1090, max: 1099, value: 2549 },
+                { min: 1100, max: 1109, value: 2834 },
+                { min: 1110, max: 1119, value: 3120 },
+                { min: 1120, max: 1129, value: 3406 },
+                { min: 1130, max: 1139, value: 3692 },
+                { min: 1140, max: 1149, value: 3977 },
+                { min: 1150, max: 1159, value: 4263 },
+                { min: 1160, max: 1169, value: 4775 },
+                { min: 1170, max: 1179, value: 5061 },
+                { min: 1180, max: 1189, value: 4307 },
+                { min: 1190, max: 1199, value: 3077 },
+                { min: 1200, max: 1209, value: 3362 },
+                { min: 1210, max: 1219, value: 3648 },
+                { min: 1220, max: 1229, value: 3934 },
+                { min: 1230, max: 1239, value: 4220 },
+                { min: 1240, max: 1249, value: 4505 },
+                { min: 1250, max: Infinity, value: 4791 }
+            ],
+            '北斗の拳_天井狙い_-1000': [
+                { min: 14, max: 19, value: 1165 },
+                { min: 20, max: 29, value: 1009 },
+                { min: 30, max: 39, value: 954 },
+                { min: 40, max: 49, value: 849 },
+                { min: 50, max: 59, value: 847 },
+                { min: 60, max: 69, value: 757 },
+                { min: 70, max: 79, value: 812 },
+                { min: 80, max: 89, value: 852 },
+                { min: 90, max: 99, value: 962 },
+                { min: 100, max: 109, value: 1006 },
+                { min: 110, max: 119, value: 1047 },
+                { min: 120, max: 129, value: 1136 },
+                { min: 130, max: 139, value: 1112 },
+                { min: 140, max: 149, value: 1180 },
+                { min: 150, max: 159, value: 1278 },
+                { min: 160, max: 169, value: 1348 },
+                { min: 170, max: 179, value: 1315 },
+                { min: 180, max: 189, value: 1262 },
+                { min: 190, max: 199, value: 1341 },
+                { min: 200, max: 209, value: 1401 },
+                { min: 210, max: 219, value: 1420 },
+                { min: 220, max: 229, value: 1480 },
+                { min: 230, max: 239, value: 1623 },
+                { min: 240, max: 249, value: 1671 },
+                { min: 250, max: 259, value: 1721 },
+                { min: 260, max: 269, value: 1767 },
+                { min: 270, max: 279, value: 1721 },
+                { min: 280, max: 289, value: 1710 },
+                { min: 290, max: 299, value: 1647 },
+                { min: 300, max: 309, value: 1649 },
+                { min: 310, max: 319, value: 1711 },
+                { min: 320, max: 329, value: 1784 },
+                { min: 330, max: 339, value: 1927 },
+                { min: 340, max: 349, value: 1942 },
+                { min: 350, max: 359, value: 2051 },
+                { min: 360, max: 369, value: 2018 },
+                { min: 370, max: 379, value: 2154 },
+                { min: 380, max: 389, value: 2299 },
+                { min: 390, max: 399, value: 2351 },
+                { min: 400, max: 409, value: 2404 },
+                { min: 410, max: 419, value: 2533 },
+                { min: 420, max: 429, value: 2306 },
+                { min: 430, max: 439, value: 2364 },
+                { min: 440, max: 449, value: 2538 },
+                { min: 450, max: 459, value: 2676 },
+                { min: 460, max: 469, value: 2759 },
+                { min: 470, max: 479, value: 2940 },
+                { min: 480, max: 489, value: 3060 },
+                { min: 490, max: 499, value: 3181 },
+                { min: 500, max: 509, value: 3125 },
+                { min: 510, max: 519, value: 3193 },
+                { min: 520, max: 529, value: 3298 },
+                { min: 530, max: 539, value: 3360 },
+                { min: 540, max: 549, value: 3407 },
+                { min: 550, max: 559, value: 3194 },
+                { min: 560, max: 569, value: 3356 },
+                { min: 570, max: 579, value: 3378 },
+                { min: 580, max: 589, value: 3357 },
+                { min: 590, max: 599, value: 3080 },
+                { min: 600, max: 609, value: 3186 },
+                { min: 610, max: 619, value: 3268 },
+                { min: 620, max: 629, value: 3369 },
+                { min: 630, max: 639, value: 3237 },
+                { min: 640, max: 649, value: 3162 },
+                { min: 650, max: 659, value: 3317 },
+                { min: 660, max: 669, value: 3575 },
+                { min: 670, max: 679, value: 3743 },
+                { min: 680, max: 689, value: 3780 },
+                { min: 690, max: 699, value: 3993 },
+                { min: 700, max: 709, value: 4172 },
+                { min: 710, max: 719, value: 4352 },
+                { min: 720, max: 729, value: 4454 },
+                { min: 730, max: 739, value: 4712 },
+                { min: 740, max: 749, value: 4964 },
+                { min: 750, max: 759, value: 5166 },
+                { min: 760, max: 769, value: 5251 },
+                { min: 770, max: 779, value: 5329 },
+                { min: 780, max: 789, value: 5580 },
+                { min: 790, max: 799, value: 5607 },
+                { min: 800, max: 809, value: 5854 },
+                { min: 810, max: 819, value: 5675 },
+                { min: 820, max: 829, value: 5574 },
+                { min: 830, max: 839, value: 5662 },
+                { min: 840, max: 849, value: 5886 },
+                { min: 850, max: 859, value: 6167 },
+                { min: 860, max: 869, value: 6454 },
+                { min: 870, max: 879, value: 6729 },
+                { min: 880, max: 889, value: 7046 },
+                { min: 890, max: 899, value: 7011 },
+                { min: 900, max: 909, value: 7332 },
+                { min: 910, max: 919, value: 7511 },
+                { min: 920, max: 929, value: 7692 },
+                { min: 930, max: 939, value: 7737 },
+                { min: 940, max: 949, value: 8002 },
+                { min: 950, max: 959, value: 8295 },
+                { min: 960, max: 969, value: 8487 },
+                { min: 970, max: 979, value: 8838 },
+                { min: 980, max: 989, value: 9180 },
+                { min: 990, max: 999, value: 9131 },
+                { min: 1000, max: 1009, value: 9465 },
+                { min: 1010, max: 1019, value: 9349 },
+                { min: 1020, max: 1029, value: 9544 },
+                { min: 1030, max: 1039, value: 9944 },
+                { min: 1040, max: 1049, value: 10369 },
+                { min: 1050, max: 1059, value: 10767 },
+                { min: 1060, max: 1069, value: 11137 },
+                { min: 1070, max: 1079, value: 11534 },
+                { min: 1080, max: 1089, value: 11700 },
+                { min: 1090, max: 1099, value: 12155 },
+                { min: 1100, max: 1109, value: 12324 },
+                { min: 1110, max: 1119, value: 12781 },
+                { min: 1120, max: 1129, value: 13219 },
+                { min: 1130, max: 1139, value: 13443 },
+                { min: 1140, max: 1149, value: 13877 },
+                { min: 1150, max: 1159, value: 14272 },
+                { min: 1160, max: 1169, value: 14706 },
+                { min: 1170, max: 1179, value: 15201 },
+                { min: 1180, max: 1189, value: 15812 },
+                { min: 1190, max: 1199, value: 16231 },
+                { min: 1200, max: 1209, value: 16653 },
+                { min: 1210, max: 1219, value: 16937 },
+                { min: 1220, max: 1229, value: 17588 },
+                { min: 1230, max: 1239, value: 18015 },
+                { min: 1240, max: 1249, value: 18280 },
+                { min: 1250, max: Infinity, value: 18307 }
+            ],
+            '北斗の拳_天井狙い_-500': [
+                { min: 14, max: 19, value: 835 },
+                { min: 20, max: 29, value: 711 },
+                { min: 30, max: 39, value: 636 },
+                { min: 40, max: 49, value: 619 },
+                { min: 50, max: 59, value: 565 },
+                { min: 60, max: 69, value: 586 },
+                { min: 70, max: 79, value: 591 },
+                { min: 80, max: 89, value: 593 },
+                { min: 90, max: 99, value: 672 },
+                { min: 100, max: 109, value: 663 },
+                { min: 110, max: 119, value: 679 },
+                { min: 120, max: 129, value: 713 },
+                { min: 130, max: 139, value: 748 },
+                { min: 140, max: 149, value: 828 },
+                { min: 150, max: 159, value: 855 },
+                { min: 160, max: 169, value: 835 },
+                { min: 170, max: 179, value: 812 },
+                { min: 180, max: 189, value: 751 },
+                { min: 190, max: 199, value: 770 },
+                { min: 200, max: 209, value: 801 },
+                { min: 210, max: 219, value: 807 },
+                { min: 220, max: 229, value: 825 },
+                { min: 230, max: 239, value: 916 },
+                { min: 240, max: 249, value: 1009 },
+                { min: 250, max: 259, value: 1055 },
+                { min: 260, max: 269, value: 1104 },
+                { min: 270, max: 279, value: 1104 },
+                { min: 280, max: 289, value: 1222 },
+                { min: 290, max: 299, value: 1246 },
+                { min: 300, max: 309, value: 1257 },
+                { min: 310, max: 319, value: 1246 },
+                { min: 320, max: 329, value: 1331 },
+                { min: 330, max: 339, value: 1320 },
+                { min: 340, max: 349, value: 1301 },
+                { min: 350, max: 359, value: 1333 },
+                { min: 360, max: 369, value: 1366 },
+                { min: 370, max: 379, value: 1404 },
+                { min: 380, max: 389, value: 1435 },
+                { min: 390, max: 399, value: 1479 },
+                { min: 400, max: 409, value: 1556 },
+                { min: 410, max: 419, value: 1648 },
+                { min: 420, max: 429, value: 1640 },
+                { min: 430, max: 439, value: 1721 },
+                { min: 440, max: 449, value: 1742 },
+                { min: 450, max: 459, value: 1829 },
+                { min: 460, max: 469, value: 1883 },
+                { min: 470, max: 479, value: 2008 },
+                { min: 480, max: 489, value: 2085 },
+                { min: 490, max: 499, value: 2249 },
+                { min: 500, max: 509, value: 2308 },
+                { min: 510, max: 519, value: 2357 },
+                { min: 520, max: 529, value: 2337 },
+                { min: 530, max: 539, value: 2437 },
+                { min: 540, max: 549, value: 2579 },
+                { min: 550, max: 559, value: 2739 },
+                { min: 560, max: 569, value: 2830 },
+                { min: 570, max: 579, value: 2763 },
+                { min: 580, max: 589, value: 2805 },
+                { min: 590, max: 599, value: 2920 },
+                { min: 600, max: 609, value: 2846 },
+                { min: 610, max: 619, value: 2978 },
+                { min: 620, max: 629, value: 3101 },
+                { min: 630, max: 639, value: 3248 },
+                { min: 640, max: 649, value: 3223 },
+                { min: 650, max: 659, value: 3202 },
+                { min: 660, max: 669, value: 3370 },
+                { min: 670, max: 679, value: 3553 },
+                { min: 680, max: 689, value: 3728 },
+                { min: 690, max: 699, value: 3826 },
+                { min: 700, max: 709, value: 3871 },
+                { min: 710, max: 719, value: 3938 },
+                { min: 720, max: 729, value: 4063 },
+                { min: 730, max: 739, value: 4167 },
+                { min: 740, max: 749, value: 4309 },
+                { min: 750, max: 759, value: 4573 },
+                { min: 760, max: 769, value: 4691 },
+                { min: 770, max: 779, value: 4884 },
+                { min: 780, max: 789, value: 4997 },
+                { min: 790, max: 799, value: 5094 },
+                { min: 800, max: 809, value: 5110 },
+                { min: 810, max: 819, value: 4787 },
+                { min: 820, max: 829, value: 4826 },
+                { min: 830, max: 839, value: 5063 },
+                { min: 840, max: 849, value: 5194 },
+                { min: 850, max: 859, value: 5065 },
+                { min: 860, max: 869, value: 5301 },
+                { min: 870, max: 879, value: 5509 },
+                { min: 880, max: 889, value: 5427 },
+                { min: 890, max: 899, value: 5600 },
+                { min: 900, max: 909, value: 5807 },
+                { min: 910, max: 919, value: 5957 },
+                { min: 920, max: 929, value: 5968 },
+                { min: 930, max: 939, value: 6134 },
+                { min: 940, max: 949, value: 6323 },
+                { min: 950, max: 959, value: 6219 },
+                { min: 960, max: 969, value: 6398 },
+                { min: 970, max: 979, value: 6709 },
+                { min: 980, max: 989, value: 6907 },
+                { min: 990, max: 999, value: 6650 },
+                { min: 1000, max: 1009, value: 6967 },
+                { min: 1010, max: 1019, value: 6900 },
+                { min: 1020, max: 1029, value: 6979 },
+                { min: 1030, max: 1039, value: 7142 },
+                { min: 1040, max: 1049, value: 7356 },
+                { min: 1050, max: 1059, value: 7511 },
+                { min: 1060, max: 1069, value: 7808 },
+                { min: 1070, max: 1079, value: 8076 },
+                { min: 1080, max: 1089, value: 8431 },
+                { min: 1090, max: 1099, value: 8421 },
+                { min: 1100, max: 1109, value: 8588 },
+                { min: 1110, max: 1119, value: 8966 },
+                { min: 1120, max: 1129, value: 9183 },
+                { min: 1130, max: 1139, value: 9225 },
+                { min: 1140, max: 1149, value: 9557 },
+                { min: 1150, max: 1159, value: 9907 },
+                { min: 1160, max: 1169, value: 10150 },
+                { min: 1170, max: 1179, value: 10474 },
+                { min: 1180, max: 1189, value: 10788 },
+                { min: 1190, max: 1199, value: 11119 },
+                { min: 1200, max: 1209, value: 11651 },
+                { min: 1210, max: 1219, value: 12078 },
+                { min: 1220, max: 1229, value: 12099 },
+                { min: 1230, max: 1239, value: 12404 },
+                { min: 1240, max: 1249, value: 12765 },
+                { min: 1250, max: Infinity, value: 13153 }
+            ],
+            '北斗の拳_天井狙い_0': [
+                { min: 14, max: 19, value: 281 },
+                { min: 20, max: 29, value: 205 },
+                { min: 30, max: 39, value: 238 },
+                { min: 40, max: 49, value: 284 },
+                { min: 50, max: 59, value: 305 },
+                { min: 60, max: 69, value: 356 },
+                { min: 70, max: 79, value: 381 },
+                { min: 80, max: 89, value: 364 },
+                { min: 90, max: 99, value: 411 },
+                { min: 100, max: 109, value: 494 },
+                { min: 110, max: 119, value: 530 },
+                { min: 120, max: 129, value: 561 },
+                { min: 130, max: 139, value: 590 },
+                { min: 140, max: 149, value: 620 },
+                { min: 150, max: 159, value: 709 },
+                { min: 160, max: 169, value: 778 },
+                { min: 170, max: 179, value: 820 },
+                { min: 180, max: 189, value: 890 },
+                { min: 190, max: 199, value: 889 },
+                { min: 200, max: 209, value: 975 },
+                { min: 210, max: 219, value: 981 },
+                { min: 220, max: 229, value: 1011 },
+                { min: 230, max: 239, value: 1111 },
+                { min: 240, max: 249, value: 1145 },
+                { min: 250, max: 259, value: 1192 },
+                { min: 260, max: 269, value: 1287 },
+                { min: 270, max: 279, value: 1354 },
+                { min: 280, max: 289, value: 1349 },
+                { min: 290, max: 299, value: 1441 },
+                { min: 300, max: 309, value: 1446 },
+                { min: 310, max: 319, value: 1454 },
+                { min: 320, max: 329, value: 1417 },
+                { min: 330, max: 339, value: 1449 },
+                { min: 340, max: 349, value: 1430 },
+                { min: 350, max: 359, value: 1429 },
+                { min: 360, max: 369, value: 1505 },
+                { min: 370, max: 379, value: 1572 },
+                { min: 380, max: 389, value: 1638 },
+                { min: 390, max: 399, value: 1678 },
+                { min: 400, max: 409, value: 1789 },
+                { min: 410, max: 419, value: 1886 },
+                { min: 420, max: 429, value: 1958 },
+                { min: 430, max: 439, value: 2027 },
+                { min: 440, max: 449, value: 2095 },
+                { min: 450, max: 459, value: 2145 },
+                { min: 460, max: 469, value: 2222 },
+                { min: 470, max: 479, value: 2283 },
+                { min: 480, max: 489, value: 2404 },
+                { min: 490, max: 499, value: 2384 },
+                { min: 500, max: 509, value: 2385 },
+                { min: 510, max: 519, value: 2504 },
+                { min: 520, max: 529, value: 2504 },
+                { min: 530, max: 539, value: 2637 },
+                { min: 540, max: 549, value: 2724 },
+                { min: 550, max: 559, value: 2778 },
+                { min: 560, max: 569, value: 2860 },
+                { min: 570, max: 579, value: 2985 },
+                { min: 580, max: 589, value: 3154 },
+                { min: 590, max: 599, value: 3186 },
+                { min: 600, max: 609, value: 3275 },
+                { min: 610, max: 619, value: 3376 },
+                { min: 620, max: 629, value: 3492 },
+                { min: 630, max: 639, value: 3674 },
+                { min: 640, max: 649, value: 3753 },
+                { min: 650, max: 659, value: 3892 },
+                { min: 660, max: 669, value: 4001 },
+                { min: 670, max: 679, value: 4115 },
+                { min: 680, max: 689, value: 4211 },
+                { min: 690, max: 699, value: 4352 },
+                { min: 700, max: 709, value: 4476 },
+                { min: 710, max: 719, value: 4594 },
+                { min: 720, max: 729, value: 4665 },
+                { min: 730, max: 739, value: 4750 },
+                { min: 740, max: 749, value: 4727 },
+                { min: 750, max: 759, value: 4889 },
+                { min: 760, max: 769, value: 5115 },
+                { min: 770, max: 779, value: 5320 },
+                { min: 780, max: 789, value: 5407 },
+                { min: 790, max: 799, value: 5411 },
+                { min: 800, max: 809, value: 5297 },
+                { min: 810, max: 819, value: 5075 },
+                { min: 820, max: 829, value: 5134 },
+                { min: 830, max: 839, value: 5399 },
+                { min: 840, max: 849, value: 5613 },
+                { min: 850, max: 859, value: 5819 },
+                { min: 860, max: 869, value: 6057 },
+                { min: 870, max: 879, value: 6219 },
+                { min: 880, max: 889, value: 6426 },
+                { min: 890, max: 899, value: 6667 },
+                { min: 900, max: 909, value: 6839 },
+                { min: 910, max: 919, value: 7046 },
+                { min: 920, max: 929, value: 7239 },
+                { min: 930, max: 939, value: 7414 },
+                { min: 940, max: 949, value: 7594 },
+                { min: 950, max: 959, value: 7871 },
+                { min: 960, max: 969, value: 8003 },
+                { min: 970, max: 979, value: 8172 },
+                { min: 980, max: 989, value: 8356 },
+                { min: 990, max: 999, value: 8524 },
+                { min: 1000, max: 1009, value: 8811 },
+                { min: 1010, max: 1019, value: 9094 },
+                { min: 1020, max: 1029, value: 9379 },
+                { min: 1030, max: 1039, value: 9660 },
+                { min: 1040, max: 1049, value: 9860 },
+                { min: 1050, max: 1059, value: 10173 },
+                { min: 1060, max: 1069, value: 10510 },
+                { min: 1070, max: 1079, value: 10657 },
+                { min: 1080, max: 1089, value: 10779 },
+                { min: 1090, max: 1099, value: 10848 },
+                { min: 1100, max: 1109, value: 11120 },
+                { min: 1110, max: 1119, value: 11417 },
+                { min: 1120, max: 1129, value: 11776 },
+                { min: 1130, max: 1139, value: 12115 },
+                { min: 1140, max: 1149, value: 12441 },
+                { min: 1150, max: 1159, value: 12485 },
+                { min: 1160, max: 1169, value: 12943 },
+                { min: 1170, max: 1179, value: 13253 },
+                { min: 1180, max: 1189, value: 13472 },
+                { min: 1190, max: 1199, value: 13906 },
+                { min: 1200, max: 1209, value: 14326 },
+                { min: 1210, max: 1219, value: 14695 },
+                { min: 1220, max: 1229, value: 14839 },
+                { min: 1230, max: 1239, value: 14898 },
+                { min: 1240, max: 1249, value: 15350 },
+                { min: 1250, max: Infinity, value: 15708 }
+            ],
+            '北斗の拳_天井狙い_500': [
+                { min: 14, max: 19, value: -922 },
+                { min: 20, max: 29, value: -905 },
+                { min: 30, max: 39, value: -929 },
+                { min: 40, max: 49, value: -909 },
+                { min: 50, max: 59, value: -872 },
+                { min: 60, max: 69, value: -832 },
+                { min: 70, max: 79, value: -794 },
+                { min: 80, max: 89, value: -725 },
+                { min: 90, max: 99, value: -699 },
+                { min: 100, max: 109, value: -662 },
+                { min: 110, max: 119, value: -618 },
+                { min: 120, max: 129, value: -539 },
+                { min: 130, max: 139, value: -498 },
+                { min: 140, max: 149, value: -454 },
+                { min: 150, max: 159, value: -373 },
+                { min: 160, max: 169, value: -308 },
+                { min: 170, max: 179, value: -259 },
+                { min: 180, max: 189, value: -181 },
+                { min: 190, max: 199, value: -103 },
+                { min: 200, max: 209, value: -56 },
+                { min: 210, max: 219, value: 12 },
+                { min: 220, max: 229, value: 101 },
+                { min: 230, max: 239, value: 200 },
+                { min: 240, max: 249, value: 251 },
+                { min: 250, max: 259, value: 358 },
+                { min: 260, max: 269, value: 469 },
+                { min: 270, max: 279, value: 528 },
+                { min: 280, max: 289, value: 626 },
+                { min: 290, max: 299, value: 642 },
+                { min: 300, max: 309, value: 667 },
+                { min: 310, max: 319, value: 644 },
+                { min: 320, max: 329, value: 783 },
+                { min: 330, max: 339, value: 864 },
+                { min: 340, max: 349, value: 981 },
+                { min: 350, max: 359, value: 1081 },
+                { min: 360, max: 369, value: 1172 },
+                { min: 370, max: 379, value: 1195 },
+                { min: 380, max: 389, value: 1242 },
+                { min: 390, max: 399, value: 1300 },
+                { min: 400, max: 409, value: 1426 },
+                { min: 410, max: 419, value: 1511 },
+                { min: 420, max: 429, value: 1545 },
+                { min: 430, max: 439, value: 1577 },
+                { min: 440, max: 449, value: 1673 },
+                { min: 450, max: 459, value: 1707 },
+                { min: 460, max: 469, value: 1810 },
+                { min: 470, max: 479, value: 1946 },
+                { min: 480, max: 489, value: 1987 },
+                { min: 490, max: 499, value: 2124 },
+                { min: 500, max: 509, value: 2255 },
+                { min: 510, max: 519, value: 2345 },
+                { min: 520, max: 529, value: 2458 },
+                { min: 530, max: 539, value: 2397 },
+                { min: 540, max: 549, value: 2431 },
+                { min: 550, max: 559, value: 2494 },
+                { min: 560, max: 569, value: 2629 },
+                { min: 570, max: 579, value: 2758 },
+                { min: 580, max: 589, value: 2914 },
+                { min: 590, max: 599, value: 2945 },
+                { min: 600, max: 609, value: 3006 },
+                { min: 610, max: 619, value: 3090 },
+                { min: 620, max: 629, value: 3207 },
+                { min: 630, max: 639, value: 3230 },
+                { min: 640, max: 649, value: 3393 },
+                { min: 650, max: 659, value: 3422 },
+                { min: 660, max: 669, value: 3590 },
+                { min: 670, max: 679, value: 3744 },
+                { min: 680, max: 689, value: 3902 },
+                { min: 690, max: 699, value: 3977 },
+                { min: 700, max: 709, value: 3958 },
+                { min: 710, max: 719, value: 4102 },
+                { min: 720, max: 729, value: 4308 },
+                { min: 730, max: 739, value: 4511 },
+                { min: 740, max: 749, value: 4643 },
+                { min: 750, max: 759, value: 4808 },
+                { min: 760, max: 769, value: 4936 },
+                { min: 770, max: 779, value: 4784 },
+                { min: 780, max: 789, value: 4848 },
+                { min: 790, max: 799, value: 4914 },
+                { min: 800, max: 809, value: 4927 },
+                { min: 810, max: 819, value: 4719 },
+                { min: 820, max: 829, value: 4727 },
+                { min: 830, max: 839, value: 4820 },
+                { min: 840, max: 849, value: 4906 },
+                { min: 850, max: 859, value: 5024 },
+                { min: 860, max: 869, value: 5105 },
+                { min: 870, max: 879, value: 5300 },
+                { min: 880, max: 889, value: 5530 },
+                { min: 890, max: 899, value: 5744 },
+                { min: 900, max: 909, value: 5955 },
+                { min: 910, max: 919, value: 6134 },
+                { min: 920, max: 929, value: 6381 },
+                { min: 930, max: 939, value: 6623 },
+                { min: 940, max: 949, value: 6773 },
+                { min: 950, max: 959, value: 6980 },
+                { min: 960, max: 969, value: 7252 },
+                { min: 970, max: 979, value: 7410 },
+                { min: 980, max: 989, value: 7638 },
+                { min: 990, max: 999, value: 7920 },
+                { min: 1000, max: 1009, value: 8126 },
+                { min: 1010, max: 1019, value: 8364 },
+                { min: 1020, max: 1029, value: 8667 },
+                { min: 1030, max: 1039, value: 8727 },
+                { min: 1040, max: 1049, value: 8955 },
+                { min: 1050, max: 1059, value: 9076 },
+                { min: 1060, max: 1069, value: 9370 },
+                { min: 1070, max: 1079, value: 9492 },
+                { min: 1080, max: 1089, value: 9793 },
+                { min: 1090, max: 1099, value: 10179 },
+                { min: 1100, max: 1109, value: 10477 },
+                { min: 1110, max: 1119, value: 10643 },
+                { min: 1120, max: 1129, value: 10954 },
+                { min: 1130, max: 1139, value: 11295 },
+                { min: 1140, max: 1149, value: 11533 },
+                { min: 1150, max: 1159, value: 11959 },
+                { min: 1160, max: 1169, value: 12314 },
+                { min: 1170, max: 1179, value: 12618 },
+                { min: 1180, max: 1189, value: 13050 },
+                { min: 1190, max: 1199, value: 13327 },
+                { min: 1200, max: 1209, value: 13583 },
+                { min: 1210, max: 1219, value: 13863 },
+                { min: 1220, max: 1229, value: 14469 },
+                { min: 1230, max: 1239, value: 15018 },
+                { min: 1240, max: 1249, value: 15364 },
+                { min: 1250, max: Infinity, value: 15794 }
+            ],
+            '北斗の拳_天井狙い_1000': [
+                { min: 14, max: 19, value: -2672 },
+                { min: 20, max: 29, value: -2584 },
+                { min: 30, max: 39, value: -2506 },
+                { min: 40, max: 49, value: -2429 },
+                { min: 50, max: 59, value: -2328 },
+                { min: 60, max: 69, value: -2254 },
+                { min: 70, max: 79, value: -2184 },
+                { min: 80, max: 89, value: -2089 },
+                { min: 90, max: 99, value: -1969 },
+                { min: 100, max: 109, value: -1909 },
+                { min: 110, max: 119, value: -1878 },
+                { min: 120, max: 129, value: -1835 },
+                { min: 130, max: 139, value: -1784 },
+                { min: 140, max: 149, value: -1775 },
+                { min: 150, max: 159, value: -1717 },
+                { min: 160, max: 169, value: -1631 },
+                { min: 170, max: 179, value: -1549 },
+                { min: 180, max: 189, value: -1427 },
+                { min: 190, max: 199, value: -1369 },
+                { min: 200, max: 209, value: -1304 },
+                { min: 210, max: 219, value: -1189 },
+                { min: 220, max: 229, value: -1092 },
+                { min: 230, max: 239, value: -1076 },
+                { min: 240, max: 249, value: -1005 },
+                { min: 250, max: 259, value: -992 },
+                { min: 260, max: 269, value: -921 },
+                { min: 270, max: 279, value: -882 },
+                { min: 280, max: 289, value: -720 },
+                { min: 290, max: 299, value: -749 },
+                { min: 300, max: 309, value: -735 },
+                { min: 310, max: 319, value: -667 },
+                { min: 320, max: 329, value: -612 },
+                { min: 330, max: 339, value: -554 },
+                { min: 340, max: 349, value: -437 },
+                { min: 350, max: 359, value: -279 },
+                { min: 360, max: 369, value: -174 },
+                { min: 370, max: 379, value: -35 },
+                { min: 380, max: 389, value: 48 },
+                { min: 390, max: 399, value: 192 },
+                { min: 400, max: 409, value: 213 },
+                { min: 410, max: 419, value: 348 },
+                { min: 420, max: 429, value: 450 },
+                { min: 430, max: 439, value: 587 },
+                { min: 440, max: 449, value: 684 },
+                { min: 450, max: 459, value: 801 },
+                { min: 460, max: 469, value: 876 },
+                { min: 470, max: 479, value: 977 },
+                { min: 480, max: 489, value: 1037 },
+                { min: 490, max: 499, value: 1130 },
+                { min: 500, max: 509, value: 1257 },
+                { min: 510, max: 519, value: 1360 },
+                { min: 520, max: 529, value: 1493 },
+                { min: 530, max: 539, value: 1633 },
+                { min: 540, max: 549, value: 1704 },
+                { min: 550, max: 559, value: 1836 },
+                { min: 560, max: 569, value: 2053 },
+                { min: 570, max: 579, value: 2202 },
+                { min: 580, max: 589, value: 2345 },
+                { min: 590, max: 599, value: 2205 },
+                { min: 600, max: 609, value: 2373 },
+                { min: 610, max: 619, value: 2562 },
+                { min: 620, max: 629, value: 2651 },
+                { min: 630, max: 639, value: 2813 },
+                { min: 640, max: 649, value: 3048 },
+                { min: 650, max: 659, value: 3255 },
+                { min: 660, max: 669, value: 3275 },
+                { min: 670, max: 679, value: 3407 },
+                { min: 680, max: 689, value: 3445 },
+                { min: 690, max: 699, value: 3587 },
+                { min: 700, max: 709, value: 3671 },
+                { min: 710, max: 719, value: 3809 },
+                { min: 720, max: 729, value: 3947 },
+                { min: 730, max: 739, value: 4167 },
+                { min: 740, max: 749, value: 4273 },
+                { min: 750, max: 759, value: 4481 },
+                { min: 760, max: 769, value: 4493 },
+                { min: 770, max: 779, value: 4621 },
+                { min: 780, max: 789, value: 4807 },
+                { min: 790, max: 799, value: 4638 },
+                { min: 800, max: 809, value: 4703 },
+                { min: 810, max: 819, value: 4421 },
+                { min: 820, max: 829, value: 4473 },
+                { min: 830, max: 839, value: 4718 },
+                { min: 840, max: 849, value: 4970 },
+                { min: 850, max: 859, value: 5199 },
+                { min: 860, max: 869, value: 5391 },
+                { min: 870, max: 879, value: 5654 },
+                { min: 880, max: 889, value: 5765 },
+                { min: 890, max: 899, value: 6041 },
+                { min: 900, max: 909, value: 6259 },
+                { min: 910, max: 919, value: 6473 },
+                { min: 920, max: 929, value: 6702 },
+                { min: 930, max: 939, value: 6914 },
+                { min: 940, max: 949, value: 7163 },
+                { min: 950, max: 959, value: 7325 },
+                { min: 960, max: 969, value: 7507 },
+                { min: 970, max: 979, value: 7639 },
+                { min: 980, max: 989, value: 7934 },
+                { min: 990, max: 999, value: 8069 },
+                { min: 1000, max: 1009, value: 8350 },
+                { min: 1010, max: 1019, value: 8586 },
+                { min: 1020, max: 1029, value: 8911 },
+                { min: 1030, max: 1039, value: 9140 },
+                { min: 1040, max: 1049, value: 9423 },
+                { min: 1050, max: 1059, value: 9844 },
+                { min: 1060, max: 1069, value: 10106 },
+                { min: 1070, max: 1079, value: 10261 },
+                { min: 1080, max: 1089, value: 10613 },
+                { min: 1090, max: 1099, value: 10875 },
+                { min: 1100, max: 1109, value: 11112 },
+                { min: 1110, max: 1119, value: 11136 },
+                { min: 1120, max: 1129, value: 11227 },
+                { min: 1130, max: 1139, value: 11528 },
+                { min: 1140, max: 1149, value: 11726 },
+                { min: 1150, max: 1159, value: 12077 },
+                { min: 1160, max: 1169, value: 12446 },
+                { min: 1170, max: 1179, value: 12396 },
+                { min: 1180, max: 1189, value: 12924 },
+                { min: 1190, max: 1199, value: 13364 },
+                { min: 1200, max: 1209, value: 13629 },
+                { min: 1210, max: 1219, value: 14051 },
+                { min: 1220, max: 1229, value: 14432 },
+                { min: 1230, max: 1239, value: 14884 },
+                { min: 1240, max: 1249, value: 15804 },
+                { min: 1250, max: Infinity, value: 16495 }
+            ],
+            '北斗の拳_天井狙い_1500': [
+                { min: 14, max: 19, value: -4015 },
+                { min: 20, max: 29, value: -3975 },
+                { min: 30, max: 39, value: -3937 },
+                { min: 40, max: 49, value: -3855 },
+                { min: 50, max: 59, value: -3810 },
+                { min: 60, max: 69, value: -3719 },
+                { min: 70, max: 79, value: -3650 },
+                { min: 80, max: 89, value: -3594 },
+                { min: 90, max: 99, value: -3566 },
+                { min: 100, max: 109, value: -3459 },
+                { min: 110, max: 119, value: -3383 },
+                { min: 120, max: 129, value: -3301 },
+                { min: 130, max: 139, value: -3237 },
+                { min: 140, max: 149, value: -3190 },
+                { min: 150, max: 159, value: -3118 },
+                { min: 160, max: 169, value: -3071 },
+                { min: 170, max: 179, value: -2999 },
+                { min: 180, max: 189, value: -2895 },
+                { min: 190, max: 199, value: -2822 },
+                { min: 200, max: 209, value: -2731 },
+                { min: 210, max: 219, value: -2682 },
+                { min: 220, max: 229, value: -2567 },
+                { min: 230, max: 239, value: -2453 },
+                { min: 240, max: 249, value: -2339 },
+                { min: 250, max: 259, value: -2211 },
+                { min: 260, max: 269, value: -2126 },
+                { min: 270, max: 279, value: -2060 },
+                { min: 280, max: 289, value: -1980 },
+                { min: 290, max: 299, value: -1923 },
+                { min: 300, max: 309, value: -1920 },
+                { min: 310, max: 319, value: -1890 },
+                { min: 320, max: 329, value: -1814 },
+                { min: 330, max: 339, value: -1716 },
+                { min: 340, max: 349, value: -1588 },
+                { min: 350, max: 359, value: -1469 },
+                { min: 360, max: 369, value: -1410 },
+                { min: 370, max: 379, value: -1359 },
+                { min: 380, max: 389, value: -1325 },
+                { min: 390, max: 399, value: -1245 },
+                { min: 400, max: 409, value: -1168 },
+                { min: 410, max: 419, value: -1112 },
+                { min: 420, max: 429, value: -1017 },
+                { min: 430, max: 439, value: -928 },
+                { min: 440, max: 449, value: -890 },
+                { min: 450, max: 459, value: -783 },
+                { min: 460, max: 469, value: -689 },
+                { min: 470, max: 479, value: -600 },
+                { min: 480, max: 489, value: -494 },
+                { min: 490, max: 499, value: -349 },
+                { min: 500, max: 509, value: -259 },
+                { min: 510, max: 519, value: -129 },
+                { min: 520, max: 529, value: -3 },
+                { min: 530, max: 539, value: 108 },
+                { min: 540, max: 549, value: 225 },
+                { min: 550, max: 559, value: 365 },
+                { min: 560, max: 569, value: 539 },
+                { min: 570, max: 579, value: 612 },
+                { min: 580, max: 589, value: 642 },
+                { min: 590, max: 599, value: 756 },
+                { min: 600, max: 609, value: 904 },
+                { min: 610, max: 619, value: 1064 },
+                { min: 620, max: 629, value: 1198 },
+                { min: 630, max: 639, value: 1358 },
+                { min: 640, max: 649, value: 1542 },
+                { min: 650, max: 659, value: 1719 },
+                { min: 660, max: 669, value: 1898 },
+                { min: 670, max: 679, value: 2053 },
+                { min: 680, max: 689, value: 2196 },
+                { min: 690, max: 699, value: 2376 },
+                { min: 700, max: 709, value: 2562 },
+                { min: 710, max: 719, value: 2804 },
+                { min: 720, max: 729, value: 3024 },
+                { min: 730, max: 739, value: 3228 },
+                { min: 740, max: 749, value: 3318 },
+                { min: 750, max: 759, value: 3454 },
+                { min: 760, max: 769, value: 3694 },
+                { min: 770, max: 779, value: 3863 },
+                { min: 780, max: 789, value: 4018 },
+                { min: 790, max: 799, value: 4184 },
+                { min: 800, max: 809, value: 4236 },
+                { min: 810, max: 819, value: 4131 },
+                { min: 820, max: 829, value: 4281 },
+                { min: 830, max: 839, value: 4421 },
+                { min: 840, max: 849, value: 4661 },
+                { min: 850, max: 859, value: 4798 },
+                { min: 860, max: 869, value: 4977 },
+                { min: 870, max: 879, value: 5155 },
+                { min: 880, max: 889, value: 5414 },
+                { min: 890, max: 899, value: 5710 },
+                { min: 900, max: 909, value: 5898 },
+                { min: 910, max: 919, value: 6110 },
+                { min: 920, max: 929, value: 6244 },
+                { min: 930, max: 939, value: 6452 },
+                { min: 940, max: 949, value: 6650 },
+                { min: 950, max: 959, value: 6950 },
+                { min: 960, max: 969, value: 7176 },
+                { min: 970, max: 979, value: 7423 },
+                { min: 980, max: 989, value: 7584 },
+                { min: 990, max: 999, value: 7825 },
+                { min: 1000, max: 1009, value: 8019 },
+                { min: 1010, max: 1019, value: 8338 },
+                { min: 1020, max: 1029, value: 8355 },
+                { min: 1030, max: 1039, value: 8729 },
+                { min: 1040, max: 1049, value: 8996 },
+                { min: 1050, max: 1059, value: 9255 },
+                { min: 1060, max: 1069, value: 9612 },
+                { min: 1070, max: 1079, value: 9720 },
+                { min: 1080, max: 1089, value: 10067 },
+                { min: 1090, max: 1099, value: 10475 },
+                { min: 1100, max: 1109, value: 10814 },
+                { min: 1110, max: 1119, value: 11158 },
+                { min: 1120, max: 1129, value: 11321 },
+                { min: 1130, max: 1139, value: 11634 },
+                { min: 1140, max: 1149, value: 11908 },
+                { min: 1150, max: 1159, value: 12261 },
+                { min: 1160, max: 1169, value: 12544 },
+                { min: 1170, max: 1179, value: 12733 },
+                { min: 1180, max: 1189, value: 13047 },
+                { min: 1190, max: 1199, value: 13296 },
+                { min: 1200, max: 1209, value: 13809 },
+                { min: 1210, max: 1219, value: 14133 },
+                { min: 1220, max: 1229, value: 14693 },
+                { min: 1230, max: 1239, value: 15157 },
+                { min: 1240, max: 1249, value: 15597 },
+                { min: 1250, max: Infinity, value: 15556 }
+            ],
+            '北斗の拳_天井狙い_2000': [
+                { min: 14, max: 19, value: -5159 },
+                { min: 20, max: 29, value: -5118 },
+                { min: 30, max: 39, value: -5037 },
+                { min: 40, max: 49, value: -4986 },
+                { min: 50, max: 59, value: -4920 },
+                { min: 60, max: 69, value: -4880 },
+                { min: 70, max: 79, value: -4843 },
+                { min: 80, max: 89, value: -4800 },
+                { min: 90, max: 99, value: -4748 },
+                { min: 100, max: 109, value: -4706 },
+                { min: 110, max: 119, value: -4649 },
+                { min: 120, max: 129, value: -4551 },
+                { min: 130, max: 139, value: -4437 },
+                { min: 140, max: 149, value: -4334 },
+                { min: 150, max: 159, value: -4226 },
+                { min: 160, max: 169, value: -4127 },
+                { min: 170, max: 179, value: -4037 },
+                { min: 180, max: 189, value: -3982 },
+                { min: 190, max: 199, value: -3919 },
+                { min: 200, max: 209, value: -3800 },
+                { min: 210, max: 219, value: -3745 },
+                { min: 220, max: 229, value: -3673 },
+                { min: 230, max: 239, value: -3581 },
+                { min: 240, max: 249, value: -3522 },
+                { min: 250, max: 259, value: -3399 },
+                { min: 260, max: 269, value: -3309 },
+                { min: 270, max: 279, value: -3226 },
+                { min: 280, max: 289, value: -3087 },
+                { min: 290, max: 299, value: -3019 },
+                { min: 300, max: 309, value: -2989 },
+                { min: 310, max: 319, value: -2951 },
+                { min: 320, max: 329, value: -2861 },
+                { min: 330, max: 339, value: -2773 },
+                { min: 340, max: 349, value: -2693 },
+                { min: 350, max: 359, value: -2593 },
+                { min: 360, max: 369, value: -2535 },
+                { min: 370, max: 379, value: -2447 },
+                { min: 380, max: 389, value: -2316 },
+                { min: 390, max: 399, value: -2209 },
+                { min: 400, max: 409, value: -2096 },
+                { min: 410, max: 419, value: -1955 },
+                { min: 420, max: 429, value: -1812 },
+                { min: 430, max: 439, value: -1670 },
+                { min: 440, max: 449, value: -1579 },
+                { min: 450, max: 459, value: -1412 },
+                { min: 460, max: 469, value: -1303 },
+                { min: 470, max: 479, value: -1151 },
+                { min: 480, max: 489, value: -1030 },
+                { min: 490, max: 499, value: -941 },
+                { min: 500, max: 509, value: -777 },
+                { min: 510, max: 519, value: -646 },
+                { min: 520, max: 529, value: -487 },
+                { min: 530, max: 539, value: -370 },
+                { min: 540, max: 549, value: -213 },
+                { min: 550, max: 559, value: -39 },
+                { min: 560, max: 569, value: 51 },
+                { min: 570, max: 579, value: 206 },
+                { min: 580, max: 589, value: 310 },
+                { min: 590, max: 599, value: 419 },
+                { min: 600, max: 609, value: 605 },
+                { min: 610, max: 619, value: 711 },
+                { min: 620, max: 629, value: 890 },
+                { min: 630, max: 639, value: 1071 },
+                { min: 640, max: 649, value: 1163 },
+                { min: 650, max: 659, value: 1255 },
+                { min: 660, max: 669, value: 1385 },
+                { min: 670, max: 679, value: 1588 },
+                { min: 680, max: 689, value: 1755 },
+                { min: 690, max: 699, value: 1849 },
+                { min: 700, max: 709, value: 2022 },
+                { min: 710, max: 719, value: 2254 },
+                { min: 720, max: 729, value: 2433 },
+                { min: 730, max: 739, value: 2588 },
+                { min: 740, max: 749, value: 2844 },
+                { min: 750, max: 759, value: 3006 },
+                { min: 760, max: 769, value: 3186 },
+                { min: 770, max: 779, value: 3334 },
+                { min: 780, max: 789, value: 3575 },
+                { min: 790, max: 799, value: 3735 },
+                { min: 800, max: 809, value: 3888 },
+                { min: 810, max: 819, value: 3814 },
+                { min: 820, max: 829, value: 3959 },
+                { min: 830, max: 839, value: 4178 },
+                { min: 840, max: 849, value: 4299 },
+                { min: 850, max: 859, value: 4266 },
+                { min: 860, max: 869, value: 4511 },
+                { min: 870, max: 879, value: 4710 },
+                { min: 880, max: 889, value: 4647 },
+                { min: 890, max: 899, value: 4765 },
+                { min: 900, max: 909, value: 4795 },
+                { min: 910, max: 919, value: 5053 },
+                { min: 920, max: 929, value: 5331 },
+                { min: 930, max: 939, value: 5578 },
+                { min: 940, max: 949, value: 5765 },
+                { min: 950, max: 959, value: 6018 },
+                { min: 960, max: 969, value: 6232 },
+                { min: 970, max: 979, value: 6493 },
+                { min: 980, max: 989, value: 6540 },
+                { min: 990, max: 999, value: 6864 },
+                { min: 1000, max: 1009, value: 7140 },
+                { min: 1010, max: 1019, value: 7465 },
+                { min: 1020, max: 1029, value: 7765 },
+                { min: 1030, max: 1039, value: 8047 },
+                { min: 1040, max: 1049, value: 8294 },
+                { min: 1050, max: 1059, value: 8599 },
+                { min: 1060, max: 1069, value: 8926 },
+                { min: 1070, max: 1079, value: 9203 },
+                { min: 1080, max: 1089, value: 9496 },
+                { min: 1090, max: 1099, value: 9796 },
+                { min: 1100, max: 1109, value: 10145 },
+                { min: 1110, max: 1119, value: 10470 },
+                { min: 1120, max: 1129, value: 10863 },
+                { min: 1130, max: 1139, value: 11210 },
+                { min: 1140, max: 1149, value: 11548 },
+                { min: 1150, max: 1159, value: 11895 },
+                { min: 1160, max: 1169, value: 12211 },
+                { min: 1170, max: 1179, value: 12612 },
+                { min: 1180, max: 1189, value: 12772 },
+                { min: 1190, max: 1199, value: 13069 },
+                { min: 1200, max: 1209, value: 13580 },
+                { min: 1210, max: 1219, value: 13972 },
+                { min: 1220, max: 1229, value: 14347 },
+                { min: 1230, max: 1239, value: 14581 },
+                { min: 1240, max: 1249, value: 14905 },
+                { min: 1250, max: Infinity, value: 15325 }
+            ]
+        };
+
+        // 差枚数の選択肢を更新する関数
+        function updateCoinDiffOptions(machineName, target) {
+            const coinDiffSelect = document.getElementById('coin-diff');
+            if (!coinDiffSelect) return;
+
+            // 選択肢をクリア
+            coinDiffSelect.innerHTML = '<option value="">差枚数を選択してください</option>';
+
+            if (!machineName || !target) {
+                return;
+            }
+
+            // 期待値データから該当する差枚数を抽出
+            const coinDiffSet = new Set();
+            const prefix = machineName + '_' + target + '_';
+            
+            for (const key in expectedValueData) {
+                if (key.startsWith(prefix)) {
+                    // キーから差枚数を抽出（例: "北斗の拳_天井狙い_-1500" → "-1500"）
+                    const coinDiff = key.replace(prefix, '');
+                    const coinDiffNum = parseInt(coinDiff);
+                    if (!isNaN(coinDiffNum)) {
+                        coinDiffSet.add(coinDiffNum);
+                    }
+                }
+            }
+
+            // 差枚数をソートして選択肢を生成
+            const coinDiffArray = Array.from(coinDiffSet).sort((a, b) => a - b);
+            
+            coinDiffArray.forEach(function(coinDiff, index) {
+                const option = document.createElement('option');
+                option.value = coinDiff;
+                
+                // 範囲のラベルを生成
+                let label;
+                if (index === 0) {
+                    // 最初の差枚数は「以上」を表示
+                    if (coinDiff >= 0) {
+                        label = '直近+' + coinDiff + '枚以上';
+                    } else {
+                        label = '直近' + coinDiff + '枚以上';
+                    }
+                } else {
+                    // 前の差枚数から現在の差枚数までの範囲を表示
+                    const prevCoinDiff = coinDiffArray[index - 1];
+                    if (prevCoinDiff >= 0 && coinDiff >= 0) {
+                        label = '直近+' + prevCoinDiff + '～+' + coinDiff + '枚後';
+                    } else if (prevCoinDiff < 0 && coinDiff < 0) {
+                        label = '直近' + prevCoinDiff + '～' + coinDiff + '枚後';
+                    } else if (prevCoinDiff < 0 && coinDiff >= 0) {
+                        label = '直近' + prevCoinDiff + '～+' + coinDiff + '枚後';
+                    } else {
+                        label = '直近+' + prevCoinDiff + '～' + coinDiff + '枚後';
+                    }
+                }
+                
+                option.textContent = label;
+                coinDiffSelect.appendChild(option);
+            });
+        }
+
+        // ゲーム数の選択肢を更新する関数
+        function updateGameCountOptions(machineName, target, coinDiff) {
+            const gameCountSelect = document.getElementById('game-count');
+            
+            if (!machineName || !target) {
+                gameCountSelect.innerHTML = '<option value="">機種とねらい目を選択してください</option>';
+                gameCountSelect.disabled = true;
+                return;
+            }
+
+            // 差枚数が選択されている場合はキーに含める
+            let key;
+            if (coinDiff && coinDiff !== '') {
+                key = machineName + '_' + target + '_' + coinDiff;
+            } else {
+                key = machineName + '_' + target;
+            }
+
+            const data = expectedValueData[key];
+
+            if (!data) {
+                gameCountSelect.innerHTML = '<option value="">データがありません</option>';
+                gameCountSelect.disabled = true;
+                return;
+            }
+
+            // 選択肢をクリア
+            gameCountSelect.innerHTML = '<option value="">ゲーム数を選択してください</option>';
+
+            // 期待値データから範囲を取得して選択肢を生成
+            data.forEach(function(range) {
+                const option = document.createElement('option');
+                let label;
+                if (range.max === Infinity) {
+                    label = range.min + '～';
+                } else {
+                    label = range.min + '～' + range.max;
+                }
+                option.value = range.min; // 範囲の最小値を使用
+                option.textContent = label;
+                gameCountSelect.appendChild(option);
+            });
+
+            gameCountSelect.disabled = false;
+        }
+
+        // 期待値を取得する関数
+        function getExpectedValue(machineName, target, gameCount, coinDiff) {
+            if (!machineName || !target || !gameCount) {
+                return null;
+            }
+
+            // 北斗の拳の天井狙いの場合、差枚数が必要
+            if (machineName === '北斗の拳' && target === '天井狙い') {
+                if (!coinDiff || coinDiff === '') {
+                    return null;
+                }
+            }
+
+            // 差枚数が選択されている場合はキーに含める
+            let key;
+            if (coinDiff && coinDiff !== '') {
+                key = machineName + '_' + target + '_' + coinDiff;
+            } else {
+                key = machineName + '_' + target;
+            }
+
+            const data = expectedValueData[key];
+
+            if (!data) {
+                return null;
+            }
+
+            const gameNum = parseInt(gameCount);
+            if (isNaN(gameNum) || gameNum < 1) {
+                return null;
+            }
+
+            // ゲーム数に該当する範囲を検索
+            for (let i = 0; i < data.length; i++) {
+                if (gameNum >= data[i].min && (data[i].max === Infinity || gameNum <= data[i].max)) {
+                    return data[i].value;
+                }
+            }
+
+            return null;
+        }
+
+        // 期待値を表示する関数
+        function updateExpectedValue() {
+            const machineName = document.getElementById('machine-name').value;
+            const target = document.getElementById('target').value;
+            const gameCount = document.getElementById('game-count').value;
+            const coinDiff = document.getElementById('coin-diff').value;
+            const outputElement = document.getElementById('expected-value');
+
+            const expectedValue = getExpectedValue(machineName, target, gameCount, coinDiff);
+
+            if (expectedValue !== null) {
+                const formattedValue = expectedValue >= 0 
+                    ? '¥' + expectedValue.toLocaleString() 
+                    : '-¥' + Math.abs(expectedValue).toLocaleString();
+                outputElement.textContent = formattedValue;
+                
+                // 期待値が正の場合は緑、負の場合は赤に色を変更
+                if (expectedValue >= 0) {
+                    outputElement.style.color = '#10b981';
+                } else {
+                    outputElement.style.color = '#ef4444';
+                }
+            } else {
+                outputElement.textContent = '-';
+                outputElement.style.color = '#38bdf8';
+            }
+        }
+
+        // 稼働開始ページ用の差枚数の選択肢を更新する関数
+        function updateCoinDiffOptionsForOperation(machineName, target) {
+            const coinDiffSelect = document.getElementById('operation-coin-diff');
+            if (!coinDiffSelect) return;
+
+            // 選択肢をクリア
+            coinDiffSelect.innerHTML = '<option value="">差枚数を選択してください</option>';
+
+            if (!machineName || !target) {
+                return;
+            }
+
+            // 期待値データから該当する差枚数を抽出
+            const coinDiffSet = new Set();
+            const prefix = machineName + '_' + target + '_';
+            
+            for (const key in expectedValueData) {
+                if (key.startsWith(prefix)) {
+                    // キーから差枚数を抽出（例: "北斗の拳_天井狙い_-1500" → "-1500"）
+                    const coinDiff = key.replace(prefix, '');
+                    const coinDiffNum = parseInt(coinDiff);
+                    if (!isNaN(coinDiffNum)) {
+                        coinDiffSet.add(coinDiffNum);
+                    }
+                }
+            }
+
+            // 差枚数をソートして選択肢を生成
+            const coinDiffArray = Array.from(coinDiffSet).sort((a, b) => a - b);
+            
+            coinDiffArray.forEach(function(coinDiff, index) {
+                const option = document.createElement('option');
+                option.value = coinDiff;
+                
+                // 範囲のラベルを生成
+                let label;
+                if (index === 0) {
+                    // 最初の差枚数は「以上」を表示
+                    if (coinDiff >= 0) {
+                        label = '直近+' + coinDiff + '枚以上';
+                    } else {
+                        label = '直近' + coinDiff + '枚以上';
+                    }
+                } else {
+                    // 前の差枚数から現在の差枚数までの範囲を表示
+                    const prevCoinDiff = coinDiffArray[index - 1];
+                    if (prevCoinDiff >= 0 && coinDiff >= 0) {
+                        label = '直近+' + prevCoinDiff + '～+' + coinDiff + '枚後';
+                    } else if (prevCoinDiff < 0 && coinDiff < 0) {
+                        label = '直近' + prevCoinDiff + '～' + coinDiff + '枚後';
+                    } else if (prevCoinDiff < 0 && coinDiff >= 0) {
+                        label = '直近' + prevCoinDiff + '～+' + coinDiff + '枚後';
+                    } else {
+                        label = '直近+' + prevCoinDiff + '～' + coinDiff + '枚後';
+                    }
+                }
+                
+                option.textContent = label;
+                coinDiffSelect.appendChild(option);
+            });
+        }
+
+        // 稼働開始ページ用のゲーム数の選択肢を更新する関数
+        function updateGameCountOptionsForOperation(machineName, target, coinDiff) {
+            const gameCountSelect = document.getElementById('operation-game-count');
+            
+            if (!machineName || !target) {
+                if (gameCountSelect) {
+                    gameCountSelect.innerHTML = '<option value="">機種とねらい目を選択してください</option>';
+                    gameCountSelect.disabled = true;
+                }
+                return;
+            }
+
+            if (!gameCountSelect) return;
+
+            // 差枚数が選択されている場合はキーに含める
+            let key;
+            if (coinDiff && coinDiff !== '') {
+                key = machineName + '_' + target + '_' + coinDiff;
+            } else {
+                key = machineName + '_' + target;
+            }
+
+            const data = expectedValueData[key];
+
+            if (!data) {
+                gameCountSelect.innerHTML = '<option value="">データがありません</option>';
+                gameCountSelect.disabled = true;
+                return;
+            }
+
+            // 選択肢をクリア
+            gameCountSelect.innerHTML = '<option value="">ゲーム数を選択してください</option>';
+
+            // 期待値データから範囲を取得して選択肢を生成
+            data.forEach(function(range) {
+                const option = document.createElement('option');
+                let label;
+                if (range.max === Infinity) {
+                    label = range.min + '～';
+                } else {
+                    label = range.min + '～' + range.max;
+                }
+                option.value = range.min; // 範囲の最小値を使用
+                option.textContent = label;
+                gameCountSelect.appendChild(option);
+            });
+
+            gameCountSelect.disabled = false;
+        }
+
+        // 稼働開始ページ用の期待値を表示する関数
+        function updateExpectedValueForOperation() {
+            const machineName = document.getElementById('operation-machine-name').value;
+            const target = document.getElementById('operation-target').value;
+            const gameCount = document.getElementById('operation-game-count').value;
+            const coinDiff = document.getElementById('operation-coin-diff').value;
+            const outputElement = document.getElementById('operation-expected-value');
+
+            if (!outputElement) return;
+
+            const expectedValue = getExpectedValue(machineName, target, gameCount, coinDiff);
+
+            if (expectedValue !== null) {
+                const formattedValue = expectedValue >= 0 
+                    ? '¥' + expectedValue.toLocaleString() 
+                    : '-¥' + Math.abs(expectedValue).toLocaleString();
+                outputElement.textContent = formattedValue;
+                
+                // 期待値が正の場合は緑、負の場合は赤に色を変更
+                if (expectedValue >= 0) {
+                    outputElement.style.color = '#10b981';
+                } else {
+                    outputElement.style.color = '#ef4444';
+                }
+            } else {
+                outputElement.textContent = '-';
+                outputElement.style.color = '#38bdf8';
+            }
+        }
+
+        function showPage(pageId) {
+            // すべてのページを非表示
+            const pages = document.querySelectorAll('.page');
+            pages.forEach(page => {
+                page.classList.remove('active');
+            });
+
+            // 選択されたページを表示
+            const targetPage = document.getElementById(pageId);
+            if (targetPage) {
+                targetPage.classList.add('active');
+            }
+
+            // 収支表ページが表示されたらカレンダーを生成
+            if (pageId === 'balance') {
+                renderCalendar();
+            }
+        }
+
+        // カレンダー関連の変数
+        let currentDate = new Date();
+        let balanceData = {}; // 日付をキー、収支を値とするオブジェクト
+        let operationData = {}; // 日付をキー、稼働情報の配列を値とするオブジェクト
+
+        // ローカルストレージから稼働情報を読み込む関数
+        function loadOperationDataFromStorage() {
+            try {
+                const savedData = localStorage.getItem('operationData');
+                if (savedData) {
+                    operationData = JSON.parse(savedData);
+                }
+            } catch (e) {
+                console.error('稼働情報の読み込みに失敗しました:', e);
+                operationData = {};
+            }
+        }
+
+        // ローカルストレージに稼働情報を保存する関数
+        function saveOperationDataToStorage() {
+            try {
+                localStorage.setItem('operationData', JSON.stringify(operationData));
+            } catch (e) {
+                console.error('稼働情報の保存に失敗しました:', e);
+            }
+        }
+
+        // カレンダーを生成する関数
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            // 月と年の表示を更新
+            const monthYearElement = document.getElementById('calendar-month-year');
+            if (monthYearElement) {
+                monthYearElement.textContent = `${year}年${month + 1}月`;
+            }
+
+            // カレンダーグリッドを取得
+            const calendarGrid = document.getElementById('calendar-grid');
+            if (!calendarGrid) return;
+
+            // グリッドをクリア
+            calendarGrid.innerHTML = '';
+
+            // 曜日ヘッダーを追加
+            const dayHeaders = ['日', '月', '火', '水', '木', '金', '土'];
+            dayHeaders.forEach(day => {
+                const header = document.createElement('div');
+                header.className = 'calendar-day-header';
+                header.textContent = day;
+                calendarGrid.appendChild(header);
+            });
+
+            // 月の最初の日を取得
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startDate = new Date(firstDay);
+            startDate.setDate(startDate.getDate() - firstDay.getDay());
+
+            // カレンダーの日付を生成（6週間分）
+            for (let i = 0; i < 42; i++) {
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+                
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day';
+                
+                // 他の月の日付かどうか
+                if (date.getMonth() !== month) {
+                    dayElement.classList.add('other-month');
+                }
+
+                // 日付番号
+                const dayNumber = document.createElement('div');
+                dayNumber.className = 'calendar-day-number';
+                dayNumber.textContent = date.getDate();
+                dayElement.appendChild(dayNumber);
+
+                // 収支データを表示
+                const dateKey = formatDateKey(date);
+                const amount = balanceData[dateKey] || 0;
+                
+                if (amount !== 0) {
+                    const amountElement = document.createElement('div');
+                    amountElement.className = 'calendar-day-amount';
+                    if (amount > 0) {
+                        amountElement.classList.add('positive');
+                        amountElement.textContent = '+' + amount.toLocaleString();
+                    } else {
+                        amountElement.classList.add('negative');
+                        amountElement.textContent = amount.toLocaleString();
+                    }
+                    dayElement.appendChild(amountElement);
+                } else {
+                    const amountElement = document.createElement('div');
+                    amountElement.className = 'calendar-day-amount zero';
+                    amountElement.textContent = '-';
+                    dayElement.appendChild(amountElement);
+                }
+
+                // 稼働情報（機種情報）を表示
+                const operations = operationData[dateKey] || [];
+                if (operations.length > 0) {
+                    const machineElement = document.createElement('div');
+                    machineElement.className = 'calendar-day-machine';
+                    machineElement.style.cssText = 'font-size: 0.6rem; color: #94a3b8; margin-top: 0.25rem; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; line-height: 1.2; max-height: 1.2em;';
+                    
+                    // 機種名を表示（複数ある場合は「他X台」と表示）
+                    let displayText = '';
+                    if (operations.length === 1) {
+                        displayText = operations[0].machineName;
+                    } else if (operations.length === 2) {
+                        displayText = operations[0].machineName + '、' + operations[1].machineName;
+                    } else {
+                        displayText = operations[0].machineName + ' 他' + (operations.length - 1) + '台';
+                    }
+                    machineElement.textContent = displayText;
+                    machineElement.title = operations.map(op => op.machineName).join('、'); // ホバーで全機種名を表示
+                    dayElement.appendChild(machineElement);
+                }
+
+                // 日付をクリックしたときに詳細を表示
+                dayElement.addEventListener('click', function() {
+                    showDateDetail(dateKey, date);
+                });
+
+                calendarGrid.appendChild(dayElement);
+            }
+        }
+
+        // 日付をキー形式に変換（YYYY-MM-DD）
+        function formatDateKey(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // 月を変更する関数
+        function changeMonth(direction) {
+            currentDate.setMonth(currentDate.getMonth() + direction);
+            renderCalendar();
+        }
+
+        // 日付詳細を表示する関数
+        function showDateDetail(dateKey, date) {
+            const modal = document.getElementById('date-detail-modal');
+            const modalTitle = document.getElementById('modal-date-title');
+            const modalBody = document.getElementById('modal-body');
+
+            if (!modal || !modalTitle || !modalBody) return;
+
+            // 日付を表示形式に変換
+            const year = date.getFullYear();
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
+            const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+            const weekday = weekdays[date.getDay()];
+            modalTitle.textContent = `${year}年${month}月${day}日（${weekday}）`;
+
+            // その日の稼働情報を取得
+            const operations = operationData[dateKey] || [];
+
+            // モーダルボディをクリア
+            modalBody.innerHTML = '';
+
+            if (operations.length === 0) {
+                modalBody.innerHTML = '<p style="text-align: center; color: #94a3b8; padding: 2rem;">この日の稼働情報はありません</p>';
+            } else {
+                // 各稼働情報を表示
+                operations.forEach(function(op, index) {
+                    const item = document.createElement('div');
+                    item.className = 'operation-detail-item';
+                    
+                    const title = document.createElement('h3');
+                    title.textContent = `${index + 1}. ${op.machineName}`;
+                    item.appendChild(title);
+
+                    const rows = [
+                        { label: '店舗', value: op.shop || '-' },
+                        { label: 'ねらい目', value: op.target || '-' },
+                        { label: 'ゲーム数', value: op.gameCount ? op.gameCount + 'G' : '-' },
+                        { label: '差枚数', value: op.coinDiff && op.coinDiff !== '' ? (op.coinDiff >= 0 ? '+' + op.coinDiff : op.coinDiff) + '枚' : '-' },
+                        { label: '期待値', value: op.expectedValue !== undefined && op.expectedValue !== null 
+                            ? (op.expectedValue >= 0 ? '¥' + op.expectedValue.toLocaleString() : '-¥' + Math.abs(op.expectedValue).toLocaleString())
+                            : '-' }
+                    ];
+
+                    rows.forEach(function(row) {
+                        const rowElement = document.createElement('div');
+                        rowElement.className = 'operation-detail-row';
+                        
+                        const label = document.createElement('span');
+                        label.className = 'operation-detail-label';
+                        label.textContent = row.label + ':';
+                        
+                        const value = document.createElement('span');
+                        value.className = 'operation-detail-value';
+                        value.textContent = row.value;
+                        if (row.label === '期待値' && op.expectedValue !== undefined && op.expectedValue !== null) {
+                            value.style.color = op.expectedValue >= 0 ? '#10b981' : '#ef4444';
+                            value.style.fontWeight = '600';
+                        }
+                        
+                        rowElement.appendChild(label);
+                        rowElement.appendChild(value);
+                        item.appendChild(rowElement);
+                    });
+
+                    modalBody.appendChild(item);
+                });
+
+                // 期待値の合計を計算
+                const totalExpectedValue = operations.reduce(function(sum, op) {
+                    return sum + (op.expectedValue !== undefined && op.expectedValue !== null ? op.expectedValue : 0);
+                }, 0);
+
+                // 期待値の合計を表示
+                const totalDiv = document.createElement('div');
+                totalDiv.className = 'expected-value-total';
+                
+                const totalLabel = document.createElement('div');
+                totalLabel.className = 'expected-value-total-label';
+                totalLabel.textContent = '期待値合計';
+                totalDiv.appendChild(totalLabel);
+
+                const totalValue = document.createElement('div');
+                totalValue.className = 'expected-value-total-value';
+                totalValue.textContent = totalExpectedValue >= 0 
+                    ? '¥' + totalExpectedValue.toLocaleString() 
+                    : '-¥' + Math.abs(totalExpectedValue).toLocaleString();
+                totalValue.style.color = totalExpectedValue >= 0 ? '#10b981' : '#ef4444';
+                totalDiv.appendChild(totalValue);
+
+                modalBody.appendChild(totalDiv);
+            }
+
+            // モーダルを表示
+            modal.style.display = 'flex';
+        }
+
+        // 日付詳細モーダルを閉じる関数
+        function closeDateDetailModal() {
+            const modal = document.getElementById('date-detail-modal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // モーダルの背景をクリックしたときに閉じる
+        document.addEventListener('DOMContentLoaded', function() {
+            // ローカルストレージから稼働情報を読み込む
+            loadOperationDataFromStorage();
+
+            const modal = document.getElementById('date-detail-modal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    // モーダルの背景（modal自体）をクリックした場合のみ閉じる
+                    if (e.target === modal) {
+                        closeDateDetailModal();
+                    }
+                });
+            }
+        });
+
+        // 機種名が変更されたときの処理
+        document.addEventListener('DOMContentLoaded', function() {
+            const machineSelect = document.getElementById('machine-name');
+            const targetSelect = document.getElementById('target');
+            const gameCountSelect = document.getElementById('game-count');
+
+            if (machineSelect && targetSelect) {
+                // モバイルでのselect操作時のスクロールを防ぐ
+                function preventScrollOnFocus(element) {
+                    let scrollPosition = 0;
+                    
+                    element.addEventListener('touchstart', function(e) {
+                        scrollPosition = window.scrollY || window.pageYOffset;
+                    }, { passive: true });
+                    
+                    element.addEventListener('focus', function(e) {
+                        // モバイルでの自動スクロールを防ぐ
+                        setTimeout(function() {
+                            if (scrollPosition !== undefined) {
+                                window.scrollTo(0, scrollPosition);
+                            }
+                        }, 0);
+                    }, { passive: false });
+                    
+                    element.addEventListener('blur', function(e) {
+                        // フォーカスが外れた後もスクロール位置を保持
+                        setTimeout(function() {
+                            if (scrollPosition !== undefined) {
+                                window.scrollTo(0, scrollPosition);
+                            }
+                        }, 100);
+                    }, { passive: false });
+                }
+
+                preventScrollOnFocus(machineSelect);
+                preventScrollOnFocus(targetSelect);
+                if (gameCountSelect) {
+                    preventScrollOnFocus(gameCountSelect);
+                }
+                const coinDiffSelect = document.getElementById('coin-diff');
+                if (coinDiffSelect) {
+                    preventScrollOnFocus(coinDiffSelect);
+                }
+
+                machineSelect.addEventListener('change', function() {
+                    const selectedMachine = this.value;
+                    const coinDiffGroup = document.getElementById('coin-diff-group');
+                    const coinDiffSelect = document.getElementById('coin-diff');
+                    const coinDiffToolLink = document.getElementById('coin-diff-tool-link');
+                    
+                    // 差枚数選択欄を非表示にする
+                    if (coinDiffGroup) {
+                        coinDiffGroup.style.display = 'none';
+                    }
+                    if (coinDiffSelect) {
+                        coinDiffSelect.value = '';
+                    }
+                    
+                    // 北斗の拳を選択した場合、差枚数計算ツールのリンクを表示
+                    if (selectedMachine === '北斗の拳') {
+                        if (coinDiffToolLink) {
+                            coinDiffToolLink.style.display = 'block';
+                        }
+                    } else {
+                        if (coinDiffToolLink) {
+                            coinDiffToolLink.style.display = 'none';
+                        }
+                    }
+                    
+                    // ねらい目の選択肢をクリア
+                    targetSelect.innerHTML = '<option value="">ねらい目を選択してください</option>';
+                    
+                    if (selectedMachine && machineData[selectedMachine]) {
+                        // 選択された機種のねらい目を追加
+                        machineData[selectedMachine].forEach(function(target) {
+                            const option = document.createElement('option');
+                            option.value = target;
+                            option.textContent = target;
+                            targetSelect.appendChild(option);
+                        });
+                        targetSelect.disabled = false;
+                    } else {
+                        targetSelect.disabled = true;
+                    }
+                    
+                    // ゲーム数の選択肢をクリア
+                    updateGameCountOptions(selectedMachine, '', '');
+                    
+                    // 期待値を更新
+                    updateExpectedValue();
+                });
+
+                // ねらい目が変更されたときの処理
+                targetSelect.addEventListener('change', function() {
+                    const selectedMachine = machineSelect.value;
+                    const selectedTarget = this.value;
+                    const coinDiffGroup = document.getElementById('coin-diff-group');
+                    const coinDiffSelect = document.getElementById('coin-diff');
+                    
+                    // 北斗の拳の天井狙いの場合、差枚数選択欄を表示
+                    if (selectedMachine === '北斗の拳' && selectedTarget === '天井狙い') {
+                        if (coinDiffGroup) {
+                            coinDiffGroup.style.display = 'block';
+                            // 差枚数の選択肢を生成
+                            updateCoinDiffOptions(selectedMachine, selectedTarget);
+                        }
+                    } else {
+                        if (coinDiffGroup) {
+                            coinDiffGroup.style.display = 'none';
+                        }
+                        if (coinDiffSelect) {
+                            coinDiffSelect.value = '';
+                        }
+                    }
+                    
+                    // ゲーム数の選択肢を更新（差枚数は空）
+                    updateGameCountOptions(selectedMachine, selectedTarget, '');
+                    
+                    // 期待値を更新
+                    updateExpectedValue();
+                });
+
+                // ゲーム数が変更されたときの処理
+                if (gameCountSelect) {
+                    gameCountSelect.addEventListener('change', function() {
+                        updateExpectedValue();
+                    });
+                }
+
+                // 差枚数が変更されたときの処理
+                if (coinDiffSelect) {
+                    coinDiffSelect.addEventListener('change', function() {
+                        const selectedMachine = machineSelect.value;
+                        const selectedTarget = targetSelect.value;
+                        const selectedCoinDiff = this.value;
+                        
+                        // ゲーム数の選択肢を更新（差枚数を含める）
+                        updateGameCountOptions(selectedMachine, selectedTarget, selectedCoinDiff);
+                        
+                        // 期待値を更新
+                        updateExpectedValue();
+                    });
+                }
+            }
+
+            // 稼働開始ページの処理
+            const operationShopSelect = document.getElementById('operation-shop');
+            const operationMachineSelect = document.getElementById('operation-machine-name');
+            const operationTargetSelect = document.getElementById('operation-target');
+            const operationGameCountSelect = document.getElementById('operation-game-count');
+            const operationCoinDiffSelect = document.getElementById('operation-coin-diff');
+            const operationCoinDiffGroup = document.getElementById('operation-coin-diff-group');
+            const operationCoinDiffToolLink = document.getElementById('operation-coin-diff-tool-link');
+            const operationSubmitButton = document.getElementById('operation-submit');
+
+            if (operationMachineSelect && operationTargetSelect) {
+                // モバイルでのselect操作時のスクロールを防ぐ
+                if (operationShopSelect) {
+                    preventScrollOnFocus(operationShopSelect);
+                }
+                preventScrollOnFocus(operationMachineSelect);
+                preventScrollOnFocus(operationTargetSelect);
+                if (operationGameCountSelect) {
+                    preventScrollOnFocus(operationGameCountSelect);
+                }
+                if (operationCoinDiffSelect) {
+                    preventScrollOnFocus(operationCoinDiffSelect);
+                }
+
+                // 機種名が変更されたときの処理
+                operationMachineSelect.addEventListener('change', function() {
+                    const selectedMachine = this.value;
+                    
+                    // 差枚数選択欄を非表示にする
+                    if (operationCoinDiffGroup) {
+                        operationCoinDiffGroup.style.display = 'none';
+                    }
+                    if (operationCoinDiffSelect) {
+                        operationCoinDiffSelect.value = '';
+                    }
+                    
+                    // 北斗の拳を選択した場合、差枚数計算ツールのリンクを表示
+                    if (selectedMachine === '北斗の拳') {
+                        if (operationCoinDiffToolLink) {
+                            operationCoinDiffToolLink.style.display = 'block';
+                        }
+                    } else {
+                        if (operationCoinDiffToolLink) {
+                            operationCoinDiffToolLink.style.display = 'none';
+                        }
+                    }
+                    
+                    // ねらい目の選択肢をクリア
+                    operationTargetSelect.innerHTML = '<option value="">ねらい目を選択してください</option>';
+                    
+                    if (selectedMachine && machineData[selectedMachine]) {
+                        // 選択された機種のねらい目を追加
+                        machineData[selectedMachine].forEach(function(target) {
+                            const option = document.createElement('option');
+                            option.value = target;
+                            option.textContent = target;
+                            operationTargetSelect.appendChild(option);
+                        });
+                        operationTargetSelect.disabled = false;
+                    } else {
+                        operationTargetSelect.disabled = true;
+                    }
+                    
+                    // ゲーム数の選択肢をクリア
+                    updateGameCountOptionsForOperation(selectedMachine, '', '');
+                    
+                    // 期待値を更新
+                    updateExpectedValueForOperation();
+                });
+
+                // ねらい目が変更されたときの処理
+                operationTargetSelect.addEventListener('change', function() {
+                    const selectedMachine = operationMachineSelect.value;
+                    const selectedTarget = this.value;
+                    
+                    // 北斗の拳の天井狙いの場合、差枚数選択欄を表示
+                    if (selectedMachine === '北斗の拳' && selectedTarget === '天井狙い') {
+                        if (operationCoinDiffGroup) {
+                            operationCoinDiffGroup.style.display = 'block';
+                            // 差枚数の選択肢を生成
+                            updateCoinDiffOptionsForOperation(selectedMachine, selectedTarget);
+                        }
+                    } else {
+                        if (operationCoinDiffGroup) {
+                            operationCoinDiffGroup.style.display = 'none';
+                        }
+                        if (operationCoinDiffSelect) {
+                            operationCoinDiffSelect.value = '';
+                        }
+                    }
+                    
+                    // ゲーム数の選択肢を更新（差枚数は空）
+                    updateGameCountOptionsForOperation(selectedMachine, selectedTarget, '');
+                    
+                    // 期待値を更新
+                    updateExpectedValueForOperation();
+                });
+
+                // ゲーム数が変更されたときの処理
+                if (operationGameCountSelect) {
+                    operationGameCountSelect.addEventListener('change', function() {
+                        updateExpectedValueForOperation();
+                    });
+                }
+
+                // 差枚数が変更されたときの処理
+                if (operationCoinDiffSelect) {
+                    operationCoinDiffSelect.addEventListener('change', function() {
+                        const selectedMachine = operationMachineSelect.value;
+                        const selectedTarget = operationTargetSelect.value;
+                        const selectedCoinDiff = this.value;
+                        
+                        // ゲーム数の選択肢を更新（差枚数を含める）
+                        updateGameCountOptionsForOperation(selectedMachine, selectedTarget, selectedCoinDiff);
+                        
+                        // 期待値を更新
+                        updateExpectedValueForOperation();
+                    });
+                }
+            }
+
+            // 稼働開始ページの決定ボタンの処理
+            if (operationSubmitButton && operationShopSelect && operationMachineSelect) {
+                operationSubmitButton.addEventListener('click', function() {
+                    const shop = operationShopSelect.value;
+                    const machineName = operationMachineSelect.value;
+                    const target = operationTargetSelect ? operationTargetSelect.value : '';
+                    const gameCount = operationGameCountSelect ? operationGameCountSelect.value : '';
+                    const coinDiff = operationCoinDiffSelect ? operationCoinDiffSelect.value : '';
+
+                    // バリデーション
+                    if (!shop) {
+                        alert('店舗を選択してください');
+                        return;
+                    }
+                    if (!machineName) {
+                        alert('機種名を選択してください');
+                        return;
+                    }
+                    if (!target) {
+                        alert('ねらい目を選択してください');
+                        return;
+                    }
+                    if (!gameCount) {
+                        alert('ゲーム数を選択してください');
+                        return;
+                    }
+                    // 北斗の拳の天井狙いの場合は差枚数も必須
+                    if (machineName === '北斗の拳' && target === '天井狙い' && !coinDiff) {
+                        alert('差枚数を選択してください');
+                        return;
+                    }
+
+                    // 期待値を計算
+                    const expectedValue = getExpectedValue(machineName, target, gameCount, coinDiff);
+
+                    // 現在の日付を取得
+                    const today = new Date();
+                    const dateKey = formatDateKey(today);
+
+                    // 稼働情報を保存
+                    if (!operationData[dateKey]) {
+                        operationData[dateKey] = [];
+                    }
+                    operationData[dateKey].push({
+                        shop: shop,
+                        machineName: machineName,
+                        target: target,
+                        gameCount: gameCount,
+                        coinDiff: coinDiff,
+                        expectedValue: expectedValue !== null ? expectedValue : 0,
+                        date: today.toISOString()
+                    });
+
+                    // ローカルストレージに保存
+                    saveOperationDataToStorage();
+
+                    // 収支データを更新（機種情報を追加しただけなので、収支は0のまま）
+                    // 必要に応じて収支データも更新できます
+
+                    // カレンダーを再描画（収支表ページが表示されている場合）
+                    if (document.getElementById('balance').classList.contains('active')) {
+                        renderCalendar();
+                    }
+
+                    // ダッシュボードに戻る
+                    showPage('dashboard');
+
+                    // フォームをリセット
+                    operationShopSelect.value = '';
+                    operationMachineSelect.value = '';
+                    if (operationTargetSelect) {
+                        operationTargetSelect.value = '';
+                        operationTargetSelect.innerHTML = '<option value="">機種を選択してください</option>';
+                        operationTargetSelect.disabled = true;
+                    }
+                    if (operationGameCountSelect) {
+                        operationGameCountSelect.value = '';
+                        operationGameCountSelect.innerHTML = '<option value="">機種とねらい目を選択してください</option>';
+                        operationGameCountSelect.disabled = true;
+                    }
+                    if (operationCoinDiffGroup) {
+                        operationCoinDiffGroup.style.display = 'none';
+                    }
+                    if (operationCoinDiffSelect) {
+                        operationCoinDiffSelect.value = '';
+                    }
+                    if (operationCoinDiffToolLink) {
+                        operationCoinDiffToolLink.style.display = 'none';
+                    }
+                    if (document.getElementById('operation-expected-value')) {
+                        document.getElementById('operation-expected-value').textContent = '-';
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
+
